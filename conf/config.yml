@@ -1,0 +1,33 @@
+Database:
+  Host: 127.0.0.1
+  Port: 3306
+  Username: root
+  Password: Test2333!
+  DbName: wusthelper_mp
+  PrintSql: true
+  ExtraParams:
+    useUnicode: 'true'
+    characterEncoding: utf-8
+    useSSL: 'false'
+    serverTimezone: Asia/Shanghai
+Redis:
+  Addr: 127.0.0.1:6379
+  ClientName: wusthelper_mp
+  Username: default
+  Password: Test2333!
+  DB: 2
+  MaxRetries: 4
+  MinIdleConns: 2
+  MaxIdleConns: 16
+Server:
+  Address: 127.0.0.1
+  Port: 37298
+  BaseUrl: /api/v1
+  Env: dev
+MiniProgram:
+  qq:
+    appid: demoString
+    Secret: demoString
+  wechat:
+    appid: demoString
+    secret: demoString
