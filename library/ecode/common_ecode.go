@@ -6,4 +6,5 @@ var (
 
 	ServerErr  = add(-1) // 服务器错误
 	NetworkErr = add(-2)
+	ParamWrong = add(-3)
 )

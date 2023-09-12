@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"time"
 	"wusthelper-mp-gateway/library/cache/redis"
 	"wusthelper-mp-gateway/library/database"
 )
@@ -20,6 +21,7 @@ var (
 type Config struct {
 	MiniProgram MpConf
 	Server      ServerConf
+	Wusthelper  WusthelperConf
 	Database    database.Config
 	Redis       redis.Config
 }
@@ -29,6 +31,12 @@ type ServerConf struct {
 	Port    int
 	Address string
 	BaseUrl string
+}
+
+type WusthelperConf struct {
+	Upstream string
+	Timeout  time.Duration
+	Proxy    string
 }
 
 type MpConf struct {

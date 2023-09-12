@@ -24,6 +24,10 @@ Server:
   Port: 37298
   BaseUrl: /api/v1
   Env: dev
+Wusthelper:
+  Upstream: http://127.0.0.1:9596/
+  Timeout: 10
+  Proxy: http://127.0.0.1:8080
 MiniProgram:
   qq:
     appid: demoString

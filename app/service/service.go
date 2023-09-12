@@ -7,7 +7,7 @@ import (
 )
 
 type Service struct {
-	c *conf.Config
+	config *conf.Config
 
 	dao *dao.Dao
 
@@ -16,9 +16,9 @@ type Service struct {
 
 func New(c *conf.Config) (service *Service) {
 	service = &Service{
-		c:   c,
-		dao: dao.New(c),
-		mp:  mp.New(c),
+		config: c,
+		dao:    dao.New(c),
+		mp:     mp.New(c),
 	}
 
 	return

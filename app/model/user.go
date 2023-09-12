@@ -1,10 +1,11 @@
 package model
 
 type UserBasic struct {
-	Uid         int64  `json:"uid,omitempty"`          // uid
-	WxOid       string `json:"wx_oid,omitempty"`       // 微信openid
-	QqOid       string `json:"qq_oid,omitempty"`       // qq openid
+	Uid         uint64 `json:"uid,omitempty"`          // uid
+	Oid         string `json:"oid,omitempty"`          // 用户唯一标识，openid
 	Sid         string `json:"sid,omitempty"`          // 学号
+	Unionid     string `json:"unionid,omitempty"`      // 用户开放平台的唯一标识符
+	Platform    uint8  `json:"platform,omitempty"`     // 用户平台，0：微信，1：QQ
 	Type        int8   `json:"type,omitempty"`         // 用户类型，0：本科生，1：研究生
 	OfficialPwd string `json:"official_pwd,omitempty"` // 教务处密码
 	LibPwd      string `json:"lib_pwd,omitempty"`      // 图书馆密码
