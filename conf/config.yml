@@ -23,11 +23,13 @@ Server:
   Address: 127.0.0.1
   Port: 37298
   BaseUrl: /api/v1
+  TokenSecret: wustlhstudio
   Env: dev
 Wusthelper:
   Upstream: http://127.0.0.1:9596/
   Timeout: 10
   Proxy: http://127.0.0.1:8080
+  TokenKey:
 MiniProgram:
   qq:
     appid: demoString

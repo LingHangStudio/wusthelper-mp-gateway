@@ -24,3 +24,26 @@ func (s *Service) GetStudent(sid string) (student *model.Student, err error) {
 
 	return
 }
+
+// SaveStudent 保存学生，如果信息存在则更新，不存在则新增插入
+func (s *Service) SaveStudent(sid string, student *model.Student) (err error) {
+	hasStudent, err := s.dao.HasStudent(sid)
+	if err != nil {
+		return err
+	}
+
+	if hasStudent {
+		_, err = s.dao.UpdateStudent(sid, student)
+		if err != nil {
+			return err
+		}
+	} else {
+		student.Sid = sid
+		_, err = s.dao.AddStudent(student)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

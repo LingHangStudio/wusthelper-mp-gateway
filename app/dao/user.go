@@ -1,22 +1,23 @@
 package dao
 
 import (
+	"time"
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
 )
 
 const (
-	_GetUserBasicSql = "select * from user_basic where oid = ? and deleted = 0 limit 1"
+	_GetUserBasicSql = "select * from user_basic where oid = ? and deleted = 0"
 	_HasUserSql      = "select 1 from user_basic where oid = ? and deleted = 0 limit 1"
 
-	_WxUserProfileSql    = "select * from wx_profile where oid = ? and deleted = 0 limit 1"
+	_WxUserProfileSql    = "select * from wx_profile where oid = ? and deleted = 0"
 	_HasWxUserProfileSql = "select 1 from wx_profile where oid = ? and deleted = 0 limit 1"
 
-	_QQUserProfileSql    = "select * from qq_profile where oid = ? and deleted = 0 limit 1"
+	_QQUserProfileSql    = "select * from qq_profile where oid = ? and deleted = 0"
 	_HasQQUserProfileSql = "select 1 from qq_profile where oid = ? and deleted = 0 limit 1"
 )
 
-func (d *Dao) FindUserBasic(oid string) (user *model.UserBasic, err error) {
+func (d *Dao) GetUserBasic(oid string) (user *model.UserBasic, err error) {
 	user = new(model.UserBasic)
 	has, err := d.db.SQL(_GetUserBasicSql, oid).Get(user)
 	if err != nil {
@@ -34,6 +35,7 @@ func (d *Dao) HasUser(oid string) (has bool, err error) {
 }
 
 func (d *Dao) UpdateUser(oid string, user *model.UserBasic, forceUpdate ...string) (count int64, err error) {
+	user.UpdateTime = time.Now()
 	count, err = d.db.
 		MustCols(forceUpdate...).
 		Where("oid = ?", oid).
@@ -43,6 +45,8 @@ func (d *Dao) UpdateUser(oid string, user *model.UserBasic, forceUpdate ...strin
 }
 
 func (d *Dao) AddUserBasic(user *model.UserBasic) (count int64, err error) {
+	user.CreateTime = time.Now()
+	user.UpdateTime = user.CreateTime
 	count, err = d.db.InsertOne(user)
 	return
 }
@@ -83,16 +87,21 @@ func (d *Dao) HasUserProfile(platform mp.Platform, oid string) (has bool, err er
 }
 
 func (d *Dao) AddWxUserProfile(user *model.WxUserProfile) (count int64, err error) {
+	user.CreateTime = time.Now()
+	user.UpdateTime = user.CreateTime
 	count, err = d.db.InsertOne(user)
 	return
 }
 
 func (d *Dao) AddQQUserProfile(user *model.QQUserProfile) (count int64, err error) {
+	user.CreateTime = time.Now()
+	user.UpdateTime = user.CreateTime
 	count, err = d.db.InsertOne(user)
 	return
 }
 
 func (d *Dao) UpdateWxUserProfile(oid string, user *model.WxUserProfile, forceUpdate ...string) (count int64, err error) {
+	user.UpdateTime = time.Now()
 	count, err = d.db.
 		MustCols(forceUpdate...).
 		Where("oid = ?", oid).
@@ -103,6 +112,7 @@ func (d *Dao) UpdateWxUserProfile(oid string, user *model.WxUserProfile, forceUp
 }
 
 func (d *Dao) UpdateQQUserProfile(oid string, user *model.QQUserProfile, forceUpdate ...string) (count int64, err error) {
+	user.UpdateTime = time.Now()
 	count, err = d.db.
 		MustCols(forceUpdate...).
 		Where("oid = ?", oid).

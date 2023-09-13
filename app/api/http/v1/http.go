@@ -5,6 +5,7 @@ import (
 	"wusthelper-mp-gateway/app/conf"
 	"wusthelper-mp-gateway/app/service"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
+	"wusthelper-mp-gateway/library/ecode"
 )
 
 var (
@@ -12,9 +13,9 @@ var (
 )
 
 type apiResp[T any] struct {
-	code int    `json:"code,omitempty"`
-	msg  string `json:"msg,omitempty"`
-	data T      `json:"data,omitempty"`
+	Code int    `json:"code,omitempty"`
+	Msg  string `json:"msg,omitempty"`
+	Data T      `json:"data,omitempty"`
 }
 
 func NewEngine(c *conf.Config, mountUrl string) *gin.Engine {
@@ -45,4 +46,20 @@ func getPlatform(c *gin.Context) mp.Platform {
 	}
 
 	return mp.Wechat
+}
+
+//func response(c *gin.Context, resp any) {
+//	c.JSON(http.StatusOK, resp)
+//}
+
+func response(c *gin.Context, code ecode.Code, data any) {
+	responseWithMsg(c, code, code.Message(), data)
+}
+
+func responseWithMsg(c *gin.Context, code ecode.Code, msg string, data any) {
+	c.JSON(200, gin.H{
+		"code": code,
+		"msg":  msg,
+		"data": data,
+	})
 }

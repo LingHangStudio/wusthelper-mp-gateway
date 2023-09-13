@@ -22,8 +22,8 @@ func (w *WusthelperHttpRpc) GraduateLogin(username, password string) (token stri
 	return resp.Data, nil
 }
 
-func (w *WusthelperHttpRpc) GraduateStudentInfo(token string) (studentInfo *StudentInfoResp, err error) {
-	resp := new(WusthelperResp[StudentInfoResp])
+func (w *WusthelperHttpRpc) GraduateStudentInfo(token string) (studentInfo *GraduateStudentResp, err error) {
+	resp := new(WusthelperResp[GraduateStudentResp])
 	_, err = w.client.R().
 		SetHeader("Token", token).
 		SetResult(resp).
@@ -39,13 +39,12 @@ func (w *WusthelperHttpRpc) GraduateStudentInfo(token string) (studentInfo *Stud
 	return &resp.Data, nil
 }
 
-func (w *WusthelperHttpRpc) GraduateCourses(term, token string) (courses *[]CourseResp, err error) {
+func (w *WusthelperHttpRpc) GraduateCourses(token string) (courses *[]CourseResp, err error) {
 	resp := new(WusthelperResp[[]CourseResp])
 	_, err = w.client.R().
 		SetHeader("Token", token).
-		SetQueryParam("schoolTerm", term).
 		SetResult(resp).
-		Get("/yjs/get-curriculum")
+		Get("/yjs/get-course")
 	if err != nil {
 		return nil, err
 	}

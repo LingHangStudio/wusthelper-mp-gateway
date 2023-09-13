@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -11,10 +12,9 @@ func TestFindWechatUser(t *testing.T) {
 	)
 
 	convey.Convey("FindWechatUser", t, func(ctx convey.C) {
-		_, err := dao.FindUserBasic(oid)
-		ctx.Convey("The err should be nil and user `should not be` nil", func(ctx convey.C) {
-			ctx.So(err, convey.ShouldBeNil)
-		})
+		result, err := dao.GetUserBasic(oid)
+		ctx.So(err, convey.ShouldBeNil)
+		fmt.Println(result)
 	})
 }
 
@@ -24,9 +24,8 @@ func TestFindQQUser(t *testing.T) {
 	)
 
 	convey.Convey("FindQQUser", t, func(ctx convey.C) {
-		_, err := dao.FindUserBasic(oid)
-		ctx.Convey("The err should be nil and user `should not be` nil", func(c convey.C) {
-			ctx.So(err, convey.ShouldBeNil)
-		})
+		result, err := dao.GetUserBasic(oid)
+		ctx.So(err, convey.ShouldBeNil)
+		fmt.Println(result)
 	})
 }

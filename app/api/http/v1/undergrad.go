@@ -2,7 +2,6 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"wusthelper-mp-gateway/library/ecode"
 )
 
@@ -12,15 +11,20 @@ type undergradLoginReq struct {
 }
 
 func undergradLogin(c *gin.Context) {
-	//platform := getPlatform(c)
+	platform := getPlatform(c)
 	req := new(undergradLoginReq)
 	err := c.BindJSON(req)
 	if err != nil {
-		c.JSON(http.StatusOK, apiResp[interface{}]{
-			code: ecode.ParamWrong.Code(),
-			msg:  "参数错误",
-		})
+		response(c, ecode.ParamWrong, nil)
+		return
 	}
 
-	c.JSON(http.StatusOK, apiResp[interface{}]{})
+	ctx := c.Request.Context()
+	_, _, err = serv.UndergradLogin(&ctx, req.UserAccount, req.UserPassword, "oid", platform)
+	if err != nil {
+		return
+	}
+
+	response(c, ecode.OK, "token")
+	c.Next()
 }

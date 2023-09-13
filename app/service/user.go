@@ -4,6 +4,7 @@ import (
 	"github.com/yitter/idgenerator-go/idgen"
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
+	"wusthelper-mp-gateway/library/ecode"
 )
 
 // Code2Session 验证从小程序前端传来的code并换取用户session信息
@@ -16,13 +17,22 @@ func (s *Service) Code2Session(platform mp.Platform, code string) (session *mp.S
 	return sessionInfo, nil
 }
 
+func (s *Service) GetUserBasic(oid string) (user *model.UserBasic, err error) {
+	user, err = s.dao.GetUserBasic(oid)
+	if err != nil {
+		return nil, ecode.DaoOperationErr
+	}
+
+	return
+}
+
 // RegisterUser 登记用户基本信息，如果相应平台的oid已经存在，则直接返回用户基本信息，否则入库保存
 func (s *Service) RegisterUser(platform mp.Platform, oid string) (user *model.UserBasic, err error) {
 	switch platform {
 	case mp.Wechat:
-		user, err = s.dao.FindUserBasic(oid)
+		user, err = s.dao.GetUserBasic(oid)
 	case mp.QQ:
-		user, err = s.dao.FindUserBasic(oid)
+		user, err = s.dao.GetUserBasic(oid)
 	}
 
 	if user == nil {
@@ -51,7 +61,8 @@ func (s *Service) newBasicUser(platform mp.Platform, oid string) (user *model.Us
 	return
 }
 
-func (s *Service) SaveUserBasic(platform mp.Platform, oid string, userBasic *model.UserBasic) (err error) {
+// SaveUserBasic 保存用户基本信息，用户不存在时插入，存在时则更新
+func (s *Service) SaveUserBasic(oid string, userBasic *model.UserBasic, platform mp.Platform) (err error) {
 	has, err := s.dao.HasUser(oid)
 	if err != nil {
 		return
@@ -61,7 +72,8 @@ func (s *Service) SaveUserBasic(platform mp.Platform, oid string, userBasic *mod
 		userBasic.Platform = uint8(platform)
 		_, err = s.dao.UpdateUser(oid, userBasic)
 	} else {
-		userBasic.Platform = uint8(platform)
+		uid := idgen.NextId()
+		userBasic.Uid = uint64(uid)
 		userBasic.Oid = oid
 		_, err = s.dao.AddUserBasic(userBasic)
 	}

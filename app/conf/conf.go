@@ -27,16 +27,19 @@ type Config struct {
 }
 
 type ServerConf struct {
-	Env     string
-	Port    int
-	Address string
-	BaseUrl string
+	Env          string
+	Port         int
+	Address      string
+	BaseUrl      string
+	TokenSecret  string
+	TokenTimeout time.Duration
 }
 
 type WusthelperConf struct {
 	Upstream string
 	Timeout  time.Duration
 	Proxy    string
+	TokenKey string
 }
 
 type MpConf struct {

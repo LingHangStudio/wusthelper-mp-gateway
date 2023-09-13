@@ -1,7 +1,5 @@
 package ecode
 
-// 搬自某个神秘的项目
-
 import (
 	"fmt"
 	"strconv"
@@ -20,7 +18,7 @@ func Register(cm map[int]string) {
 	_messages.Store(cm)
 }
 
-// New an ecode.Codes by int value.
+// New a ecode.Codes by int value.
 // NOTE: ecode must unique in global, the New will check repeat and then panic.
 func New(e int) Code {
 	if e <= 0 {
@@ -39,13 +37,15 @@ func add(e int) Code {
 
 // Codes ecode error interface which has a code & message.
 type Codes interface {
-	// Error sometimes Error return Code in string form
+	// sometimes Error return Code in string form
 	// NOTE: don't use Error in monitor report even it also work for now
 	Error() string
 	// Code get error code.
 	Code() int
 	// Message get code message.
 	Message() string
+	//Detail get error detail,it may be nil.
+	Details() []interface{}
 	// Equal for compatible.
 	// Deprecated: please use ecode.EqualError.
 	Equal(error) bool
@@ -70,6 +70,9 @@ func (e Code) Message() string {
 	}
 	return e.Error()
 }
+
+// Details return details.
+func (e Code) Details() []interface{} { return nil }
 
 // Equal for compatible.
 // Deprecated: please use ecode.EqualError.
