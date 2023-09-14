@@ -121,3 +121,9 @@ func (d *Dao) UpdateQQUserProfile(oid string, user *model.QQUserProfile, forceUp
 
 	return
 }
+
+func (d *Dao) CountTotalUser() (total int64, err error) {
+	total, err = d.db.Table("user_basic").Count()
+
+	return
+}

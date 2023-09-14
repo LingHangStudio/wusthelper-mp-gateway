@@ -22,7 +22,7 @@ func NewTee(tees []TeeOption, opts ...zap.Option) *Logger {
 		cfg := zap.NewProductionEncoderConfig()
 		cfg.EncodeTime = zapcore.RFC3339TimeEncoder
 		core := zapcore.NewCore(
-			zapcore.NewJSONEncoder(cfg),
+			zapcore.NewConsoleEncoder(cfg),
 			zapcore.AddSync(tee.Out),
 			zap.LevelEnablerFunc(tee.LevelEnablerFunc),
 		)

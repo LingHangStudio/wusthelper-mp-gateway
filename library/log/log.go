@@ -35,7 +35,7 @@ func New(out io.Writer, level Level, opts ...zap.Option) *Logger {
 	cfg.EncodeTime = zapcore.RFC3339TimeEncoder
 
 	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(cfg),
+		zapcore.NewConsoleEncoder(cfg),
 		zapcore.AddSync(out),
 		al,
 	)
@@ -83,8 +83,8 @@ func (l *Logger) Sync() error {
 
 var std = New(os.Stderr, InfoLevel)
 
-func Default() *Logger         { return std }
-func ReplaceDefault(l *Logger) { std = l }
+func Default() *Logger     { return std }
+func SetDefault(l *Logger) { std = l }
 
 func SetLevel(level Level) { std.SetLevel(level) }
 

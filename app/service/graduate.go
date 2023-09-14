@@ -9,15 +9,19 @@ import (
 )
 
 // GraduateLogin 登录并获取学生信息，同时将学生信息入库保存
-func (s *Service) GraduateLogin(ctx *context.Context, username, password string, oid string, platform mp.Platform) (token string, student *model.Student, err error) {
-	token, err = s.rpc.GraduateLogin(username, password)
+func (s *Service) GraduateLogin(ctx *context.Context, username, password string, oid string, updateStudentInfo bool, platform mp.Platform) (wusthelperToken string, student *model.Student, err error) {
+	wusthelperToken, err = s.rpc.GraduateLogin(username, password)
 	if err != nil {
 		return "", nil, err
 	}
 
-	err = s.dao.StoreWusthelperTokenCache(ctx, token, oid, wusthelperTokenExpiration)
+	err = s.dao.StoreWusthelperTokenCache(ctx, wusthelperToken, oid, wusthelperTokenExpiration)
 	if err != nil {
 		return "", nil, err
+	}
+
+	if !updateStudentInfo {
+		return wusthelperToken, nil, nil
 	}
 
 	userBasic := &model.UserBasic{
@@ -31,12 +35,12 @@ func (s *Service) GraduateLogin(ctx *context.Context, username, password string,
 		return "", nil, err
 	}
 
-	student, err = s.tokenGetGraduateStudentInfo(token)
+	student, err = s.tokenGetGraduateStudentInfo(wusthelperToken)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return token, student, err
+	return wusthelperToken, student, err
 }
 
 func (s *Service) GraduateGetStudentInfo(ctx *context.Context, oid string, platform mp.Platform) (student *model.Student, err error) {
@@ -77,7 +81,7 @@ func (s *Service) GraduateGetCourseTable(ctx *context.Context, oid string, platf
 
 	courses, err = s.rpc.GraduateCourses(token)
 	if err != nil {
-		return nil, ecode.RpcUnknownErr
+		return nil, ecode.RpcRequestErr
 	}
 
 	return
@@ -91,7 +95,7 @@ func (s *Service) GraduateGetScore(ctx *context.Context, oid string, platform mp
 
 	scores, err = s.rpc.GraduateScores(token)
 	if err != nil {
-		return nil, ecode.RpcUnknownErr
+		return nil, ecode.RpcRequestErr
 	}
 
 	return
@@ -105,7 +109,7 @@ func (s *Service) GraduateGetTrainingPlan(ctx *context.Context, oid string, plat
 
 	html, err = s.rpc.GraduateTrainingPlan(token)
 	if err != nil {
-		return "", ecode.RpcUnknownErr
+		return "", ecode.RpcRequestErr
 	}
 
 	return

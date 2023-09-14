@@ -18,12 +18,13 @@ func New(secret string, timeout time.Duration) *Token {
 	}
 }
 
-func (t *Token) Sign(oid string) (token string) {
+func (t *Token) Sign(oid, union string) (token string) {
 	//fmt.p
 	claims := &jwt.MapClaims{
-		"openid": oid,
-		"iat":    time.Now().Unix(),
-		"exp":    time.Now().Unix() + int64(t.Timeout.Seconds()),
+		"openid":  oid,
+		"unionid": union,
+		"iat":     time.Now().Unix(),
+		"exp":     time.Now().Unix() + int64(t.Timeout.Seconds()),
 	}
 	token, _ = jwt.NewWithClaims(jwt.SigningMethodHS256, *claims).
 		SignedString([]byte(t.SecretKey))
@@ -38,12 +39,19 @@ func (t *Token) Verify(token string) bool {
 	return err == nil && tt.Valid
 }
 
-func (t *Token) GetClaim(token string) bool {
-	tt, err := jwt.Parse(token, func(*jwt.Token) (interface{}, error) {
+func (t *Token) GetClaimVerify(token string) (mapClaims *jwt.MapClaims, valid bool) {
+	claims := new(jwt.MapClaims)
+	_, err := jwt.NewParser().ParseWithClaims(token, claims, func(*jwt.Token) (interface{}, error) {
 		return []byte(t.SecretKey), nil
 	})
 
-	return err == nil && tt.Valid
+	if err != nil {
+		fmt.Println("GetClaimWithoutVerifyError")
+		fmt.Println(err.Error())
+		return nil, false
+	}
+
+	return claims, true
 }
 
 func (t *Token) GetClaimWithoutVerify(token string) *jwt.MapClaims {

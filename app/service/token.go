@@ -10,7 +10,7 @@ import (
 func (s *Service) GetToken(ctx *context.Context, oid string, platform mp.Platform) (token string, err error) {
 	token, err = s.dao.GetToken(ctx, oid)
 	if err != nil {
-		return "", err
+		return "", ecode.DaoOperationErr
 	}
 
 	if token == "" {
@@ -27,18 +27,18 @@ func (s *Service) GetToken(ctx *context.Context, oid string, platform mp.Platfor
 func (s *Service) renewWusthelperToken(ctx *context.Context, oid string, platform mp.Platform) (token string, err error) {
 	user, err := s.GetUserBasic(oid)
 	if err != nil {
-		return "", err
+		return "", ecode.DaoOperationErr
 	}
 
 	username, password := user.Sid, user.OfficialPwd
 	switch user.Type {
 	case model.UndergradUser:
-		token, _, err = s.UndergradLogin(ctx, username, password, oid, platform)
+		token, _, err = s.UndergradLogin(ctx, username, password, oid, false, platform)
 		if err != nil {
 			return "", err
 		}
 	case model.GraduateUser:
-		token, _, err = s.GraduateLogin(ctx, username, password, oid, platform)
+		token, _, err = s.GraduateLogin(ctx, username, password, oid, false, platform)
 		if err != nil {
 			return "", err
 		}

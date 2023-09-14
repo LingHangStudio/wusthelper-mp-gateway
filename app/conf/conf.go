@@ -1,8 +1,8 @@
 package conf
 
 import (
-	"encoding/json"
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/viper"
 	"time"
 	"wusthelper-mp-gateway/library/cache/redis"
@@ -27,19 +27,22 @@ type Config struct {
 }
 
 type ServerConf struct {
-	Env          string
-	Port         int
-	Address      string
-	BaseUrl      string
-	TokenSecret  string
-	TokenTimeout time.Duration
+	Env            string
+	Port           int
+	Address        string
+	BaseUrl        string
+	TokenSecret    string
+	TokenTimeout   time.Duration
+	LogLocation    string
+	VersionLogFile string
 }
 
 type WusthelperConf struct {
-	Upstream string
-	Timeout  time.Duration
-	Proxy    string
-	TokenKey string
+	Upstream     string
+	Timeout      time.Duration
+	Proxy        string
+	TokenKey     string
+	AdminBaseUrl string
 }
 
 type MpConf struct {
@@ -70,7 +73,7 @@ func Init() (err error) {
 	}
 
 	if Conf.Server.Env == DevEnv {
-		jsonByte, _ := json.Marshal(Conf)
+		jsonByte, _ := jsoniter.Marshal(Conf)
 		fmt.Println(string(jsonByte))
 	}
 

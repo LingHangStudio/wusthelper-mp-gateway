@@ -1,5 +1,11 @@
 package v2
 
+import (
+	"go.uber.org/zap"
+	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/log"
+)
+
 func (w *WusthelperHttpRpc) UndergradLogin(username, password string) (token string, err error) {
 	query := map[string]string{
 		"stuNum": username,
@@ -12,7 +18,8 @@ func (w *WusthelperHttpRpc) UndergradLogin(username, password string) (token str
 		SetResult(resp).
 		Get("/jwc/login")
 	if err != nil {
-		return "", err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return "", ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -29,7 +36,8 @@ func (w *WusthelperHttpRpc) UndergradStudentInfo(token string) (studentInfo *Stu
 		SetResult(resp).
 		Get("/jwc/get-student-info")
 	if err != nil {
-		return nil, err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return nil, ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -47,7 +55,8 @@ func (w *WusthelperHttpRpc) UndergradCourses(term, token string) (courses *[]Cou
 		SetResult(resp).
 		Get("/jwc/get-curriculum")
 	if err != nil {
-		return nil, err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return nil, ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -64,7 +73,8 @@ func (w *WusthelperHttpRpc) UndergradScores(token string) (scores *[]ScoreResp, 
 		SetResult(resp).
 		Get("/jwc/get-grade")
 	if err != nil {
-		return nil, err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return nil, ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -81,7 +91,8 @@ func (w *WusthelperHttpRpc) UndergradTrainingPlan(token string) (html string, er
 		SetResult(resp).
 		Get("/jwc/get-scheme")
 	if err != nil {
-		return "", err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return "", ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {

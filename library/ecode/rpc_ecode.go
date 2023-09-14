@@ -1,5 +1,5 @@
 package ecode
 
 var (
-	RpcUnknownErr = New(40_000)
+	RpcRequestErr = New(30_000)
 )

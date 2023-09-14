@@ -13,9 +13,9 @@ func TestGetSid(t *testing.T) {
 
 	convey.Convey("GetSid", t, func(ctx convey.C) {
 		result, err := dao.GetSid(oid)
-		fmt.Println(result)
 		ctx.Convey("The err should be nil and user `should not be` nil", func(c convey.C) {
 			ctx.So(err, convey.ShouldBeNil)
 		})
+		fmt.Printf("result: '%s'\n", result)
 	})
 }

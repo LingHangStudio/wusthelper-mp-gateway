@@ -1,14 +1,16 @@
 package service
 
 import (
+	"context"
 	"github.com/yitter/idgenerator-go/idgen"
+	"time"
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
 	"wusthelper-mp-gateway/library/ecode"
 )
 
 // Code2Session 验证从小程序前端传来的code并换取用户session信息
-func (s *Service) Code2Session(platform mp.Platform, code string) (session *mp.SessionInfo, err error) {
+func (s *Service) Code2Session(code string, platform mp.Platform) (session *mp.SessionInfo, err error) {
 	sessionInfo, err := s.mp.Code2Session(platform, code)
 	if err != nil {
 		return nil, err
@@ -65,7 +67,7 @@ func (s *Service) newBasicUser(platform mp.Platform, oid string) (user *model.Us
 func (s *Service) SaveUserBasic(oid string, userBasic *model.UserBasic, platform mp.Platform) (err error) {
 	has, err := s.dao.HasUser(oid)
 	if err != nil {
-		return
+		return ecode.DaoOperationErr
 	}
 
 	if has {
@@ -78,7 +80,7 @@ func (s *Service) SaveUserBasic(oid string, userBasic *model.UserBasic, platform
 		_, err = s.dao.AddUserBasic(userBasic)
 	}
 	if err != nil {
-		return
+		return ecode.DaoOperationErr
 	}
 
 	return nil
@@ -120,4 +122,20 @@ func (s *Service) SaveQQUserProfile(oid string, profile *model.QQUserProfile) (e
 	}
 
 	return nil
+}
+
+func (s *Service) CountTotalUser(ctx *context.Context) (count int64, err error) {
+	cacheTotal, _ := s.dao.GetTotalUserCountCache(ctx)
+	if cacheTotal > 0 {
+		return cacheTotal, nil
+	}
+
+	cacheTotal, err = s.dao.CountTotalUser()
+	if err != nil {
+		return 0, ecode.DaoOperationErr
+	}
+
+	_ = s.dao.StoreTotalUserCountCache(ctx, cacheTotal, time.Hour*48)
+
+	return cacheTotal, nil
 }

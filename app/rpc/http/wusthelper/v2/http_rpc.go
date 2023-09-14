@@ -2,12 +2,14 @@ package v2
 
 import (
 	"github.com/go-resty/resty/v2"
+	"time"
 	"wusthelper-mp-gateway/app/conf"
 	"wusthelper-mp-gateway/library/ecode"
 )
 
 type WusthelperHttpRpc struct {
-	client *resty.Client
+	client      *resty.Client
+	adminClient *resty.Client
 }
 
 func NewRpcClient(c *conf.WusthelperConf) (rpc *WusthelperHttpRpc) {
@@ -15,17 +17,28 @@ func NewRpcClient(c *conf.WusthelperConf) (rpc *WusthelperHttpRpc) {
 	httpClient.SetBaseURL(c.Upstream)
 	httpClient.SetHeader("User-Agent", "wusthelper-mp-backend/0.0.1")
 	httpClient.SetHeader("Platform", "mp")
-	httpClient.SetProxy(c.Proxy)
-	httpClient.SetTimeout(c.Timeout)
+	httpClient.SetTimeout(time.Second * c.Timeout)
+
+	adminClient := resty.New()
+	adminClient.SetBaseURL(c.AdminBaseUrl)
+	adminClient.SetHeader("User-Agent", "wusthelper-mp-backend/0.0.1")
+	adminClient.SetHeader("Platform", "mp")
+	adminClient.SetTimeout(time.Second * c.Timeout)
+	if c.Proxy != "" {
+		httpClient.SetProxy(c.Proxy)
+		adminClient.SetProxy(c.Proxy)
+	}
 
 	rpc = &WusthelperHttpRpc{
-		client: httpClient,
+		client:      httpClient,
+		adminClient: adminClient,
 	}
 
 	return
 }
 
 const (
+	adminSuccess           = 0
 	success                = 10000
 	localSuc               = 11000
 	limitRequest           = 99999
@@ -86,5 +99,5 @@ const (
 )
 
 func toEcode(code int) ecode.Code {
-	return ecode.RpcUnknownErr
+	return ecode.RpcRequestErr
 }

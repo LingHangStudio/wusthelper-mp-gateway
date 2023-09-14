@@ -16,12 +16,12 @@ const (
 func (m *MimiProgram) Code2Session(platform Platform, code string) (*SessionInfo, error) {
 	var appid, secret, api string
 	if platform == Wechat {
-		appid = m.c.Wechat.AppID
-		secret = m.c.Wechat.Secret
+		appid = m.conf.Wechat.AppID
+		secret = m.conf.Wechat.Secret
 		api = _wechatCode2SessionApi
 	} else {
-		appid = m.c.QQ.AppID
-		secret = m.c.QQ.Secret
+		appid = m.conf.QQ.AppID
+		secret = m.conf.QQ.Secret
 		api = _qqCode2SessionApi
 	}
 

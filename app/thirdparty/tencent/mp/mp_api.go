@@ -18,12 +18,12 @@ const (
 var _http = resty.New()
 
 type MimiProgram struct {
-	c *conf.MpConf
+	conf *conf.MpConf
 }
 
 func New(c *conf.Config) *MimiProgram {
 	mp := &MimiProgram{
-		c: &c.MiniProgram,
+		conf: &c.MiniProgram,
 	}
 
 	return mp

@@ -10,6 +10,4 @@ var (
 	FuncNotImpl = add(10_004)
 
 	DaoOperationErr = New(10_100)
-
-	WusthelperTokenExpires = New(10_200)
 )

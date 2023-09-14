@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 
 func TestToken(t *testing.T) {
 	convey.Convey("SignToken", t, func(ctx convey.C) {
-		token := _jwt.Sign("oid")
+		token := _jwt.Sign("oid", "unionid")
 		ctx.So(token, convey.ShouldNotBeEmpty)
 		fmt.Printf("token: %s\n", token)
 

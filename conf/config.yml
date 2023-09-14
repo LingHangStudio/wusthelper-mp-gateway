@@ -25,11 +25,14 @@ Server:
   BaseUrl: /api/v1
   TokenSecret: wustlhstudio
   Env: dev
+  LogLocation: ./logs/server.log
+  VersionLogFile: ./conf/update_log.json
 Wusthelper:
   Upstream: http://127.0.0.1:9596/
   Timeout: 10
-  Proxy: http://127.0.0.1:8080
+#  Proxy: http://127.0.0.1:8080
   TokenKey:
+  AdminBaseUrl: http://127.0.0.1:11293/v1
 MiniProgram:
   qq:
     appid: demoString

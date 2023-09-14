@@ -9,15 +9,19 @@ import (
 )
 
 // UndergradLogin 登录并获取学生信息，同时将学生信息入库保存
-func (s *Service) UndergradLogin(ctx *context.Context, username, password string, oid string, platform mp.Platform) (token string, student *model.Student, err error) {
-	token, err = s.rpc.UndergradLogin(username, password)
+func (s *Service) UndergradLogin(ctx *context.Context, username, password string, oid string, updateStudentInfo bool, platform mp.Platform) (wusthelperToken string, student *model.Student, err error) {
+	wusthelperToken, err = s.rpc.UndergradLogin(username, password)
 	if err != nil {
 		return "", nil, err
 	}
 
-	err = s.dao.StoreWusthelperTokenCache(ctx, token, oid, wusthelperTokenExpiration)
+	err = s.dao.StoreWusthelperTokenCache(ctx, wusthelperToken, oid, wusthelperTokenExpiration)
 	if err != nil {
-		return "", nil, err
+		return "", nil, ecode.DaoOperationErr
+	}
+
+	if !updateStudentInfo {
+		return wusthelperToken, nil, nil
 	}
 
 	userBasic := &model.UserBasic{
@@ -31,12 +35,12 @@ func (s *Service) UndergradLogin(ctx *context.Context, username, password string
 		return "", nil, err
 	}
 
-	student, err = s.tokenGetUndergradStudentInfo(token)
+	student, err = s.tokenGetUndergradStudentInfo(wusthelperToken)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return token, student, err
+	return wusthelperToken, student, err
 }
 
 func (s *Service) UndergradGetStudentInfo(ctx *context.Context, oid string, platform mp.Platform) (student *model.Student, err error) {
@@ -77,7 +81,7 @@ func (s *Service) UndergradGetCourseTable(ctx *context.Context, oid string, term
 
 	courses, err = s.rpc.UndergradCourses(term, token)
 	if err != nil {
-		return nil, ecode.RpcUnknownErr
+		return nil, ecode.RpcRequestErr
 	}
 
 	return
@@ -91,7 +95,7 @@ func (s *Service) UndergradGetScore(ctx *context.Context, oid string, platform m
 
 	scores, err = s.rpc.UndergradScores(token)
 	if err != nil {
-		return nil, ecode.RpcUnknownErr
+		return nil, ecode.RpcRequestErr
 	}
 
 	return
@@ -105,7 +109,7 @@ func (s *Service) UndergradGetTrainingPlan(ctx *context.Context, oid string, pla
 
 	html, err = s.rpc.UndergradTrainingPlan(token)
 	if err != nil {
-		return "", ecode.RpcUnknownErr
+		return "", ecode.RpcRequestErr
 	}
 
 	return

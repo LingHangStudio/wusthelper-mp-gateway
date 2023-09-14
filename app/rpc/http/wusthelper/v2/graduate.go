@@ -1,5 +1,11 @@
 package v2
 
+import (
+	"go.uber.org/zap"
+	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/log"
+)
+
 func (w *WusthelperHttpRpc) GraduateLogin(username, password string) (token string, err error) {
 	query := map[string]string{
 		"stuNum": username,
@@ -12,7 +18,8 @@ func (w *WusthelperHttpRpc) GraduateLogin(username, password string) (token stri
 		SetResult(resp).
 		Get("/yjs/login")
 	if err != nil {
-		return "", err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return "", ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -29,7 +36,8 @@ func (w *WusthelperHttpRpc) GraduateStudentInfo(token string) (studentInfo *Grad
 		SetResult(resp).
 		Get("/yjs/get-student-info")
 	if err != nil {
-		return nil, err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return nil, ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -46,7 +54,8 @@ func (w *WusthelperHttpRpc) GraduateCourses(token string) (courses *[]CourseResp
 		SetResult(resp).
 		Get("/yjs/get-course")
 	if err != nil {
-		return nil, err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return nil, ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -63,7 +72,8 @@ func (w *WusthelperHttpRpc) GraduateScores(token string) (scores *[]GraduateScor
 		SetResult(resp).
 		Get("/yjs/get-grade")
 	if err != nil {
-		return nil, err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return nil, ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
@@ -80,7 +90,8 @@ func (w *WusthelperHttpRpc) GraduateTrainingPlan(token string) (html string, err
 		SetResult(resp).
 		Get("/yjs/get-scheme")
 	if err != nil {
-		return "", err
+		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
+		return "", ecode.RpcRequestErr
 	}
 
 	if resp.Code != success {
