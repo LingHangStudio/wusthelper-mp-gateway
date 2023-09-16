@@ -32,6 +32,7 @@ type ServerConf struct {
 	Address        string
 	BaseUrl        string
 	TokenSecret    string
+	PasswordKey    string
 	TokenTimeout   time.Duration
 	LogLocation    string
 	VersionLogFile string
@@ -60,7 +61,8 @@ func Init() (err error) {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./conf")
 	viper.AddConfigPath("./config")
-	viper.AddConfigPath("/etc/wusthelper")
+	viper.AddConfigPath("/etc/wusthelper-mp")
+	viper.AddConfigPath("$HOME/.wusthelper-mp")
 
 	err = viper.ReadInConfig()
 	if err != nil {

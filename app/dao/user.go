@@ -1,9 +1,12 @@
 package dao
 
 import (
+	"go.uber.org/zap"
 	"time"
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
+	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/log"
 )
 
 const (
@@ -30,7 +33,12 @@ func (d *Dao) GetUserBasic(oid string) (user *model.UserBasic, err error) {
 }
 
 func (d *Dao) HasUser(oid string) (has bool, err error) {
-	has, err = d.db.SQL(_HasUserSql, oid).Get()
+	has, err = d.db.SQL(_HasUserSql, oid).Exist()
+	if err != nil {
+		log.Error("查找用户存在时出现错误", zap.String("err", err.Error()))
+		return false, ecode.DaoOperationErr
+	}
+
 	return
 }
 
@@ -78,9 +86,9 @@ func (d *Dao) GetQQUserProfile(oid string) (user *model.QQUserProfile, err error
 func (d *Dao) HasUserProfile(platform mp.Platform, oid string) (has bool, err error) {
 	switch platform {
 	case mp.Wechat:
-		has, err = d.db.SQL(_HasWxUserProfileSql, oid).Get()
+		has, err = d.db.SQL(_HasWxUserProfileSql, oid).Exist()
 	case mp.QQ:
-		has, err = d.db.SQL(_HasQQUserProfileSql, oid).Get()
+		has, err = d.db.SQL(_HasQQUserProfileSql, oid).Exist()
 	}
 
 	return

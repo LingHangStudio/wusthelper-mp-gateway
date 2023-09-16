@@ -44,7 +44,11 @@ func graduateLogin(c *gin.Context) {
 		Major:       student.Major,
 	}
 
-	response(c, ecode.GraduateLoginOk, "ok", resp)
+	respData := map[string]any{
+		"info": resp,
+	}
+
+	response(c, ecode.GraduateLoginOk, "ok", respData)
 	c.Next()
 }
 
@@ -94,7 +98,7 @@ func graduateGetCourseTable(c *gin.Context) {
 	for i, course := range *courses {
 		courseList[i] = CourseRespItem{
 			Name:      course.ClassName,
-			Room:      course.Classroom,
+			RoomName:  course.Classroom,
 			Day:       course.WeekDay,
 			Length:    2,
 			Teacher:   course.Teacher,
@@ -104,7 +108,7 @@ func graduateGetCourseTable(c *gin.Context) {
 		}
 	}
 	resp := CourseResp{
-		// todo 记得一定要想办法改一下，最好可以是加一个接口来修改这些以前的旧配置
+		// todo 这里得想办法改一下，最好可以是加一个接口来修改这些以前的旧配置
 		TermStartDate:     "2023-09-04",
 		LessonData:        courseList,
 		WeekLessonNumList: *_getWeekCourseCount(&courseList),

@@ -13,6 +13,7 @@ require (
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/viper v1.16.0
+	github.com/wumansgy/goEncrypt v1.1.0
 	github.com/yitter/idgenerator-go v1.3.3
 	go.uber.org/zap v1.21.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -48,6 +49,7 @@ require (
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect

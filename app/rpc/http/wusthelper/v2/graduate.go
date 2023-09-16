@@ -16,7 +16,7 @@ func (w *WusthelperHttpRpc) GraduateLogin(username, password string) (token stri
 	_, err = w.client.R().
 		SetQueryParams(query).
 		SetResult(resp).
-		Get("/yjs/login")
+		Post("/yjs/login")
 	if err != nil {
 		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
 		return "", ecode.RpcRequestErr

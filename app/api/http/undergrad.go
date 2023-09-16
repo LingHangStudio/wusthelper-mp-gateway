@@ -29,12 +29,26 @@ func undergradLogin(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	_, _, err = serv.UndergradLogin(&ctx, req.UserAccount, req.UserPassword, oid, true, platform)
+	_, student, err := serv.UndergradLogin(&ctx, req.UserAccount, req.UserPassword, oid, true, platform)
 	if err != nil {
 		return
 	}
 
-	response(c, ecode.UndergradLoginOk, "ok", "token")
+	resp := StudentInfoResp{
+		StuId:     student.Sid,
+		Name:      student.Name,
+		Sex:       "Unknown",
+		ClassName: student.Clazz,
+		College:   student.College,
+		Major:     student.Major,
+		Year:      "student.Sid[:4]",
+	}
+
+	respData := map[string]any{
+		"info": resp,
+	}
+
+	response(c, ecode.UndergradLoginOk, "ok", respData)
 	c.Next()
 }
 
@@ -44,6 +58,7 @@ func undergradGetStudentInfo(c *gin.Context) {
 		responseEcode(c, ecode.ParamWrong, nil)
 		return
 	}
+
 	platform := getPlatform(c)
 	ctx := c.Request.Context()
 	student, err := serv.UndergradGetStudentInfo(&ctx, oid, platform)
@@ -89,7 +104,7 @@ func undergradGetCourseTable(c *gin.Context) {
 	for i, course := range *courses {
 		courseList[i] = CourseRespItem{
 			Name:      course.ClassName,
-			Room:      course.Classroom,
+			RoomName:  course.Classroom,
 			Day:       course.WeekDay,
 			Length:    2,
 			Teacher:   course.Teacher,
@@ -161,11 +176,11 @@ func undergradGetScore(c *gin.Context) {
 			LessonId:      score.CourseNum,
 			LessonName:    score.CourseName,
 			LessonGroup:   score.CourseNature,
-			ScoreNum:      fmt.Sprintf("%.2f", score.GradePoint),
+			ScoreNum:      score.Grade,
 			GradeMark:     score.ScoreFlag,
 			Credit:        fmt.Sprintf("%.2f", score.CourseCredit),
 			ClassPeriod:   fmt.Sprintf("%.0f", score.CourseHours),
-			Grade:         score.Grade,
+			Grade:         fmt.Sprintf("%.2f", score.GradePoint),
 			ExamType:      score.ExamNature,
 			ExamPoperty:   score.ExamNature,
 			LessonPoperty: score.CourseNature,

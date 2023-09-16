@@ -19,7 +19,7 @@ func Init(c *conf.Config) {
 }
 
 func UserTokenCheck(c *gin.Context) {
-	token := c.GetHeader("token")
+	token := c.GetHeader("Token")
 	if token == "" {
 		c.AbortWithStatusJSON(http.StatusOK, gin.H{
 			"code": api.TokenInvalid,
@@ -29,7 +29,7 @@ func UserTokenCheck(c *gin.Context) {
 	}
 
 	claims, valid := jwt.GetClaimVerify(token)
-	if !dev && !valid {
+	if (!dev && !valid) || claims == nil {
 		c.AbortWithStatusJSON(http.StatusOK, gin.H{
 			"code": api.TokenInvalid,
 			"msg":  "token invalid",

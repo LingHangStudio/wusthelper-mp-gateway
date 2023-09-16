@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"github.com/wumansgy/goEncrypt/aes"
+	"go.uber.org/zap"
 	"wusthelper-mp-gateway/app/model"
 	rpc "wusthelper-mp-gateway/app/rpc/http/wusthelper/v2"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
 	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/log"
 )
 
 // GraduateLogin 登录并获取学生信息，同时将学生信息入库保存
@@ -24,11 +27,17 @@ func (s *Service) GraduateLogin(ctx *context.Context, username, password string,
 		return wusthelperToken, nil, nil
 	}
 
+	encrypted, err := aes.AesCbcEncryptHex([]byte(password), []byte(s.config.Server.PasswordKey), nil)
+	if err != nil {
+		log.Error("密码加密错误", zap.String("err", err.Error()))
+		encrypted = ""
+	}
 	userBasic := &model.UserBasic{
 		Oid:         oid,
 		Sid:         username,
+		Type:        model.GraduateUser,
 		Platform:    uint8(platform),
-		OfficialPwd: password,
+		OfficialPwd: encrypted,
 	}
 	err = s.SaveUserBasic(oid, userBasic, platform)
 	if err != nil {

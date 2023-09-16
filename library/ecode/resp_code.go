@@ -13,6 +13,8 @@ const (
 	MpUserProfileUploadOk  = 20011
 	MpGetVersionLogOk      = 20041
 	MpGetAdminConfigureOk  = 20051
+	MpGetSecretOk          = 20061
+	MpGetUnionStatusOk     = 20071
 
 	UndergradLoginOk           = 30031
 	UndergradGetCoursesOk      = 30001

@@ -16,7 +16,7 @@ func (w *WusthelperHttpRpc) UndergradLogin(username, password string) (token str
 	_, err = w.client.R().
 		SetQueryParams(query).
 		SetResult(resp).
-		Get("/jwc/login")
+		Post("/jwc/login")
 	if err != nil {
 		log.Error("助手rpc上游请求出错", zap.String("err", err.Error()))
 		return "", ecode.RpcRequestErr

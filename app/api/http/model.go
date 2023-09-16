@@ -1,5 +1,24 @@
 package http
 
+type AdminConfigResp struct {
+	Code        int      `json:"code"`
+	TermList    []string `json:"termList"`
+	Openadvance bool     `json:"openadvance"`
+	Schedule    struct {
+		ScheduleVersion string `json:"scheduleVersion"`
+		RefreshSchedule bool   `json:"refreshSchedule"`
+	} `json:"schedule"`
+	MenuList struct {
+		News      bool `json:"news"`
+		Volunteer bool `json:"volunteer"`
+	} `json:"menulist"`
+	JumpUnion  int    `json:"jumpUnion"`
+	Banner     bool   `json:"banner"`
+	Term       string `json:"term"`
+	ShowNotice bool   `json:"showNotice"`
+	Union      int    `json:"union"`
+}
+
 type wxUserProfileUploadReq struct {
 	Oid       string `json:"wechat_openid"`
 	Nickname  string `json:"nickname"`
@@ -21,6 +40,23 @@ type qqUserProfileUploadReq struct {
 }
 
 // responses
+
+type UserInfoResp struct {
+	StuNum      string `json:"stuNum"`
+	StuName     string `json:"stuName"`
+	NickName    string `json:"nickName"`
+	College     string `json:"college"`
+	Major       string `json:"major"`
+	Classes     string `json:"classes"`
+	Birthday    string `json:"birthday"`
+	Sex         string `json:"sex"`
+	Nation      string `json:"nation"`
+	NativePlace string `json:"nativePlace"`
+	Phone       string `json:"phone"`
+	Email       string `json:"email"`
+	QqNum       string `json:"qqNum"`
+	Wechat      string `json:"wechat"`
+}
 
 type StudentInfoResp struct {
 	StuId     string `json:"stuId"`
@@ -44,7 +80,7 @@ type GraduateStudentInfoResp struct {
 
 type CourseRespItem struct {
 	Name      string `json:"name"`
-	Room      string `json:"room"`
+	RoomName  string `json:"roomName"`
 	Day       int    `json:"day"`
 	Length    int    `json:"length"`
 	Teacher   string `json:"teacher"`
@@ -85,7 +121,8 @@ type ScoreInfo struct {
 }
 
 type ScoreResp struct {
-	TimeInfo      []int `json:"timeArray"`
+	// Arrary: 前端就是这么写的，没办法
+	TimeInfo      []int `json:"timeArrary"`
 	ScoreInfoResp struct {
 		GradeInfo ScoreInfo       `json:"gradeInfo"`
 		GradeList []ScoreRespItem `json:"gradeList"`

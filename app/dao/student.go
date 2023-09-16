@@ -33,7 +33,7 @@ func (d *Dao) GetStudent(sid string) (student *model.Student, err error) {
 }
 
 func (d *Dao) HasStudent(sid string) (result bool, err error) {
-	result, err = d.db.SQL(_hasStudentSql, sid).Get()
+	result, err = d.db.SQL(_hasStudentSql, sid).Exist()
 	if err != nil {
 		return false, err
 	}

@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"github.com/yitter/idgenerator-go/idgen"
+	"go.uber.org/zap"
 	"time"
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
 	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/log"
 )
 
 // Code2Session 验证从小程序前端传来的code并换取用户session信息
@@ -124,6 +126,24 @@ func (s *Service) SaveQQUserProfile(oid string, profile *model.QQUserProfile) (e
 	return nil
 }
 
+func (s *Service) GetWxUserProfile(oid string) (profile *model.WxUserProfile, err error) {
+	profile, err = s.dao.GetWxUserProfile(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+func (s *Service) GetQQUserProfile(oid string) (profile *model.QQUserProfile, err error) {
+	profile, err = s.dao.GetQQUserProfile(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func (s *Service) CountTotalUser(ctx *context.Context) (count int64, err error) {
 	cacheTotal, _ := s.dao.GetTotalUserCountCache(ctx)
 	if cacheTotal > 0 {
@@ -132,10 +152,23 @@ func (s *Service) CountTotalUser(ctx *context.Context) (count int64, err error) 
 
 	cacheTotal, err = s.dao.CountTotalUser()
 	if err != nil {
+		log.Error("获取用户总数发生错误", zap.String("err", err.Error()))
 		return 0, ecode.DaoOperationErr
 	}
 
-	_ = s.dao.StoreTotalUserCountCache(ctx, cacheTotal, time.Hour*48)
+	_ = s.dao.StoreTotalUserCountCache(ctx, cacheTotal, time.Hour*1)
 
 	return cacheTotal, nil
+}
+
+func (s *Service) CheckOidMatchSid(oid, sid string) (result bool, err error) {
+	user, err := s.dao.GetUserBasic(oid)
+	if err != nil {
+		return false, err
+	}
+	if user == nil {
+		return false, nil
+	}
+
+	return user.Sid == sid, nil
 }

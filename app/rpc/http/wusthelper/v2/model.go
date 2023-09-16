@@ -49,7 +49,7 @@ type ScoreResp struct {
 }
 
 type GraduateStudentResp struct {
-	Id         int    `json:"id"`
+	Id         string `json:"id"`
 	StudentNum string `json:"studentNum"`
 	Password   string `json:"password"`
 	Name       string `json:"name"`
@@ -57,8 +57,8 @@ type GraduateStudentResp struct {
 	TutorName  string `json:"tutorName"`
 	Academy    string `json:"academy"`
 	Specialty  string `json:"specialty"`
-	Grade      int    `json:"grade"`
-	Avatar     string `json:"avatar"`
+	//Grade      int    `json:"grade"`
+	Avatar string `json:"avatar"`
 }
 
 type GraduateScoreResp struct {

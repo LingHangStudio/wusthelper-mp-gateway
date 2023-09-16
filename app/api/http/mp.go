@@ -1,8 +1,11 @@
 package http
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
+	"net/http"
 	"time"
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
@@ -18,7 +21,14 @@ func mpLogin(c *gin.Context) {
 		return
 	}
 
-	code := string(codeData)
+	requestJson := map[string]string{}
+	err = jsoniter.Unmarshal(codeData, &requestJson)
+	code := requestJson["code"]
+	if err != nil || code == "" {
+		responseEcode(c, ecode.ParamWrong, nil)
+		return
+	}
+
 	session, err := serv.Code2Session(code, platform)
 	if err != nil {
 		responseEcode(c, ecode.ServerErr, nil)
@@ -39,6 +49,7 @@ func mpLogin(c *gin.Context) {
 	}
 
 	token := jwt.Sign(oid, unionid)
+	fmt.Printf("token: %s\n", token)
 
 	response(c, ecode.MpLoginOK, "ok", token)
 	c.Next()
@@ -46,21 +57,27 @@ func mpLogin(c *gin.Context) {
 }
 
 func mpTotalUser(c *gin.Context) {
+	fmt.Println("mpTotalUser")
+
 	ctx := c.Request.Context()
 	count, err := serv.CountTotalUser(&ctx)
 	if err != nil {
+		log.Error("获取用户总数发生错误", zap.String("err", err.Error()))
 		responseEcode(c, ecode.ServerErr, nil)
 		return
 	}
+	fmt.Println(count)
 
 	data := map[string]any{
-		"date":   time.Now().String(),
+		"date":   time.Now().Format(time.RFC3339),
 		"jwcnum": count,
 	}
+	fmt.Println(data)
 	response(c, ecode.MpCountUserOk, "ok", data)
 }
 
 func mpDecodeToken(c *gin.Context) {
+	log.Warn("asdfasdfasdjfhasdkjfhagsdkjfhgaskjdhfgaskjdhfgajkshdf")
 	oid, err := getOid(c)
 	if err != nil {
 		responseEcode(c, ecode.ParamWrong, nil)
@@ -86,22 +103,22 @@ func mpDecodeToken(c *gin.Context) {
 }
 
 func mpUserProfileUpload(c *gin.Context) {
-	oid, err := getOid(c)
-	if err != nil {
-		responseEcode(c, ecode.ParamWrong, nil)
-		return
-	}
+	//oid, err := getOid(c)
+	//if err != nil {
+	//	responseEcode(c, ecode.ParamWrong, nil)
+	//	return
+	//}
 
 	platform := getPlatform(c)
 	switch platform {
 	case mp.Wechat:
-		wxUserProfileUpload(c, oid)
+		wxUserProfileUpload(c)
 	case mp.QQ:
-		qqUserProfileUpload(c, oid)
+		qqUserProfileUpload(c)
 	}
 }
 
-func wxUserProfileUpload(c *gin.Context, oid string) {
+func wxUserProfileUpload(c *gin.Context) {
 	req := new(wxUserProfileUploadReq)
 	err := c.BindJSON(req)
 	if err != nil {
@@ -109,6 +126,7 @@ func wxUserProfileUpload(c *gin.Context, oid string) {
 		return
 	}
 
+	oid := req.Oid
 	profile := &model.WxUserProfile{
 		Oid:      oid,
 		Nickname: req.Nickname,
@@ -129,7 +147,7 @@ func wxUserProfileUpload(c *gin.Context, oid string) {
 	return
 }
 
-func qqUserProfileUpload(c *gin.Context, oid string) {
+func qqUserProfileUpload(c *gin.Context) {
 	req := new(qqUserProfileUploadReq)
 	err := c.BindJSON(req)
 	if err != nil {
@@ -137,6 +155,7 @@ func qqUserProfileUpload(c *gin.Context, oid string) {
 		return
 	}
 
+	oid := req.Oid
 	profile := &model.QQUserProfile{
 		Oid:      oid,
 		Nickname: req.Nickname,
@@ -165,7 +184,20 @@ func mpGetAdminConfigure(c *gin.Context) {
 		return
 	}
 
-	response(c, ecode.MpGetAdminConfigureOk, "ok", config)
+	resp := AdminConfigResp{
+		Code:        ecode.MpGetAdminConfigureOk,
+		TermList:    config.TermList,
+		Openadvance: config.Openadvance,
+		Schedule:    config.Schedule,
+		MenuList:    config.MenuList,
+		JumpUnion:   config.JumpUnion,
+		Banner:      config.Banner,
+		Term:        config.Term,
+		ShowNotice:  config.ShowNotice,
+		Union:       config.Union,
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 func mpVersionLog(c *gin.Context) {
@@ -175,4 +207,61 @@ func mpVersionLog(c *gin.Context) {
 	}
 
 	response(c, ecode.MpGetVersionLogOk, "ok", versionLog)
+}
+
+func mpGetUserInfo(c *gin.Context) {
+	sid, has := c.GetQuery("stuNum")
+	if !has {
+		responseEcode(c, ecode.ParamWrong, nil)
+		return
+	}
+	oid, err := getOid(c)
+	if err != nil {
+		responseEcode(c, ecode.ParamWrong, nil)
+		return
+	}
+
+	match, err := serv.CheckOidMatchSid(oid, sid)
+	if err != nil {
+		responseEcode(c, ecode.ServerErr, nil)
+		return
+	}
+	if !match {
+		response(c, ecode.MpGetUserInfoOk, "ok", nil)
+		return
+	}
+
+	student, err := serv.GetStudent(sid)
+	if err != nil {
+		responseEcode(c, ecode.ServerErr, nil)
+		return
+	}
+	if student == nil {
+		response(c, ecode.MpGetUserInfoOk, "ok", nil)
+		return
+	}
+
+	resp := UserInfoResp{
+		StuNum:   sid,
+		StuName:  student.Name,
+		NickName: student.Name,
+		College:  student.College,
+		Major:    student.Major,
+		Classes:  student.Clazz,
+		//Birthday:    "",
+		//Sex:         "",
+		//Nation:      "",
+		//NativePlace: "",
+		//Phone:       "",
+		//Email:       "",
+		//QqNum:       "",
+		//Wechat:      "",
+	}
+
+	response(c, ecode.MpGetUserInfoOk, "ok", resp)
+	return
+}
+
+func mpGetUnionStatus(c *gin.Context) {
+	response(c, ecode.MpGetUnionStatusOk, "ok", 1)
 }

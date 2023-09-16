@@ -1,6 +1,7 @@
 package mp
 
 import (
+	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 	"wusthelper-mp-gateway/library/ecode"
 	"wusthelper-mp-gateway/library/log"
@@ -32,18 +33,26 @@ func (m *MimiProgram) Code2Session(platform Platform, code string) (*SessionInfo
 		"grant_type": "authorization_code",
 	}
 
-	resp := Code2SessionResp{}
-	_, err := _http.R().EnableTrace().
+	r, err := _http.R().EnableTrace().
 		SetQueryParams(query).
-		SetResult(&resp).
 		Get(api)
 	if err != nil {
 		log.Error("[Code2Session]请求小程序上游出现异常", zap.String("err", err.Error()))
 		return nil, ecode.NetworkErr
-	} else if resp.Errcode != 0 {
-		log.Debug("[Code2Session]请求小程序上游不成功",
+	}
+
+	resp := Code2SessionResp{}
+	err = jsoniter.Unmarshal(r.Body(), &resp)
+	if err != nil {
+		log.Error("[Code2Session]解析小程序上游响应出现异常", zap.String("err", err.Error()))
+		return nil, ecode.ServerErr
+	}
+
+	if resp.Errcode != 0 || resp.Openid == "" {
+		log.Warn("[Code2Session]请求小程序上游不成功",
 			zap.Int("err", resp.Errcode),
 			zap.String("mpErrMsg", resp.Errmsg),
+			zap.String("resp", r.String()),
 		)
 
 		mpErr := getMpEcode(resp.Errcode)

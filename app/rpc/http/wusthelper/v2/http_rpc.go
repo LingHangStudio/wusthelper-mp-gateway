@@ -16,12 +16,14 @@ func NewRpcClient(c *conf.WusthelperConf) (rpc *WusthelperHttpRpc) {
 	httpClient := resty.New()
 	httpClient.SetBaseURL(c.Upstream)
 	httpClient.SetHeader("User-Agent", "wusthelper-mp-backend/0.0.1")
+	httpClient.SetHeader("Content-Type", "application/x-www-form-urlencoded")
 	httpClient.SetHeader("Platform", "mp")
 	httpClient.SetTimeout(time.Second * c.Timeout)
 
 	adminClient := resty.New()
 	adminClient.SetBaseURL(c.AdminBaseUrl)
 	adminClient.SetHeader("User-Agent", "wusthelper-mp-backend/0.0.1")
+	httpClient.SetHeader("Content-Type", "application/x-www-form-urlencoded")
 	adminClient.SetHeader("Platform", "mp")
 	adminClient.SetTimeout(time.Second * c.Timeout)
 	if c.Proxy != "" {

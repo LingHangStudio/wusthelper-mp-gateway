@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"wusthelper-mp-gateway/app/conf"
 	"wusthelper-mp-gateway/app/middleware/auth"
 	"wusthelper-mp-gateway/app/service"
@@ -17,8 +18,10 @@ var (
 
 func NewEngine(c *conf.Config, baseUrl string) *gin.Engine {
 	engine := gin.Default()
-	routerGroup := engine.RouterGroup.Group(baseUrl)
-	setupOuterRouter(routerGroup)
+	rootRouter := engine.RouterGroup.Group(baseUrl)
+	rootRouter.Use(gin.LoggerWithWriter(log.Default().Writer()))
+
+	setupOuterRouter(rootRouter)
 
 	serv = service.New(c)
 	jwt = token.New(c.Server.TokenSecret, c.Server.TokenTimeout)
@@ -29,29 +32,33 @@ func NewEngine(c *conf.Config, baseUrl string) *gin.Engine {
 func setupOuterRouter(group *gin.RouterGroup) {
 	mpCommon := group.Group("/")
 	{
-		mpCommon.GET("/login", mpLogin)
+		mpCommon.POST("/login", mpLogin)
+		mpCommon.POST("/decodeToken", mpDecodeToken)
+		//mpCommon.POST("/userInfo", auth.UserTokenCheck, mpUserProfileUpload)
+		// 这个接口踏马居然是没有token的
+		mpCommon.POST("/userInfo", mpUserProfileUpload)
 		mpCommon.GET("/getUserNum", mpTotalUser)
-		mpCommon.GET("/decodeToken", mpDecodeToken)
-		mpCommon.GET("/userInfo", auth.UserTokenCheck, mpUserProfileUpload)
 		mpCommon.GET("/getSetting", mpGetAdminConfigure)
 		mpCommon.GET("/updateLog", mpVersionLog)
+		mpCommon.GET("/info", mpGetUserInfo)
+		mpCommon.GET("/getUnionStatus", mpGetUnionStatus)
 	}
 
 	undergrad := group.Group("/jwc")
 	{
 		undergrad.POST("/login", auth.UserTokenCheck, undergradLogin)
-		undergrad.POST("/getJWCInfo", auth.UserTokenCheck, undergradGetStudentInfo)
-		undergrad.POST("/getSchedule", auth.UserTokenCheck, undergradGetCourseTable)
-		undergrad.POST("/getGrade", auth.UserTokenCheck, undergradGetScore)
-		undergrad.POST("/getprocessMap", auth.UserTokenCheck, undergradGetTrainingPlan)
+		undergrad.GET("/getJWCInfo", auth.UserTokenCheck, undergradGetStudentInfo)
+		undergrad.GET("/getSchedule", auth.UserTokenCheck, undergradGetCourseTable)
+		undergrad.GET("/getGrade", auth.UserTokenCheck, undergradGetScore)
+		undergrad.GET("/getprocessMap", auth.UserTokenCheck, undergradGetTrainingPlan)
 	}
 
 	graduate := group.Group("/yjs")
 	{
 		graduate.POST("/login", auth.UserTokenCheck, graduateLogin)
-		graduate.POST("/getJWCInfo", auth.UserTokenCheck, graduateGetStudentInfo)
-		graduate.POST("/schedule", auth.UserTokenCheck, graduateGetCourseTable)
-		graduate.POST("/score", auth.UserTokenCheck, graduateGetScore)
+		graduate.GET("/getJWCInfo", auth.UserTokenCheck, graduateGetStudentInfo)
+		graduate.GET("/schedule", auth.UserTokenCheck, graduateGetCourseTable)
+		graduate.GET("/score", auth.UserTokenCheck, graduateGetScore)
 	}
 
 	library := group.Group("/library")
@@ -93,18 +100,20 @@ func responseEcode(c *gin.Context, code ecode.Code, data any) {
 }
 
 func response(c *gin.Context, code int, msg string, data any) {
-	c.JSON(200, gin.H{
+	resp := gin.H{
 		"code": code,
 		"msg":  msg,
 		"data": data,
-	})
+	}
+
+	//// 小程序原版没有msg字段，出错的时候data就作为msg
+	//if data == nil {
+	//	resp["data"] = msg
+	//}
+
+	c.JSON(200, resp)
 }
 
 func toResponseCode(code ecode.Code) (respCode int, msg string) {
-	//switch code {
-	//case ecode.OK:
-	//	return respCode, "ok"
-	//}
-
 	return code.Code(), code.Message()
 }

@@ -11,17 +11,17 @@ type Token struct {
 	Timeout   time.Duration
 }
 
+// New 一个token对象，secret为token加密密钥，timeout为有效期，单位为天
 func New(secret string, timeout time.Duration) *Token {
 	return &Token{
 		SecretKey: secret,
-		Timeout:   timeout,
+		Timeout:   time.Hour * 24 * timeout,
 	}
 }
 
 func (t *Token) Sign(oid, union string) (token string) {
-	//fmt.p
 	claims := &jwt.MapClaims{
-		"openid":  oid,
+		"oid":     oid,
 		"unionid": union,
 		"iat":     time.Now().Unix(),
 		"exp":     time.Now().Unix() + int64(t.Timeout.Seconds()),
@@ -39,14 +39,14 @@ func (t *Token) Verify(token string) bool {
 	return err == nil && tt.Valid
 }
 
-func (t *Token) GetClaimVerify(token string) (mapClaims *jwt.MapClaims, valid bool) {
+func (t *Token) GetClaimVerify(token string) (*jwt.MapClaims, bool) {
 	claims := new(jwt.MapClaims)
 	_, err := jwt.NewParser().ParseWithClaims(token, claims, func(*jwt.Token) (interface{}, error) {
 		return []byte(t.SecretKey), nil
 	})
 
 	if err != nil {
-		fmt.Println("GetClaimWithoutVerifyError")
+		fmt.Println("GetClaimVerifyError")
 		fmt.Println(err.Error())
 		return nil, false
 	}
