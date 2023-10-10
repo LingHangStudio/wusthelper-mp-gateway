@@ -34,6 +34,11 @@ func (s *Service) renewWusthelperToken(ctx *context.Context, oid string, platfor
 	}
 
 	username, encodedPassword := user.Sid, user.OfficialPwd
+	if encodedPassword == "" {
+		log.Info("无用户密码存储信息", zap.String("oid", oid))
+		return "", nil
+	}
+
 	password, err := aes.AesCbcDecryptByHex(encodedPassword, []byte(s.config.Server.PasswordKey), nil)
 	if err != nil {
 		log.Error("数据库密码解密错误，请检查server配置文件", zap.String("err", err.Error()))

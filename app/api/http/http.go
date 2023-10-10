@@ -2,12 +2,13 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"wusthelper-mp-gateway/app/conf"
 	"wusthelper-mp-gateway/app/middleware/auth"
 	"wusthelper-mp-gateway/app/service"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
 	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/ecode/resp"
+	"wusthelper-mp-gateway/library/log"
 	"wusthelper-mp-gateway/library/token"
 )
 
@@ -19,7 +20,7 @@ var (
 func NewEngine(c *conf.Config, baseUrl string) *gin.Engine {
 	engine := gin.Default()
 	rootRouter := engine.RouterGroup.Group(baseUrl)
-	rootRouter.Use(gin.LoggerWithWriter(log.Default().Writer()))
+	//rootRouter.Use(gin.LoggerWithWriter(*log.DefaultWriter().))
 
 	setupOuterRouter(rootRouter)
 
@@ -33,7 +34,7 @@ func setupOuterRouter(group *gin.RouterGroup) {
 	mpCommon := group.Group("/")
 	{
 		mpCommon.POST("/login", mpLogin)
-		mpCommon.POST("/decodeToken", mpDecodeToken)
+		mpCommon.POST("/decodeToken", auth.UserTokenCheck, mpDecodeToken)
 		//mpCommon.POST("/userInfo", auth.UserTokenCheck, mpUserProfileUpload)
 		// 这个接口踏马居然是没有token的
 		mpCommon.POST("/userInfo", mpUserProfileUpload)
@@ -83,11 +84,13 @@ func getPlatform(c *gin.Context) mp.Platform {
 func getOid(c *gin.Context) (string, error) {
 	_oid, ok := c.Get("oid")
 	if !ok {
+		log.Error("获取oid参数失败, oid为空")
 		return "", ecode.ParamWrong
 	}
 
 	oid, ok := _oid.(string)
 	if !ok {
+		log.Error("获取oid参数失败, oid转换失败")
 		return "", ecode.ParamWrong
 	}
 
@@ -106,14 +109,26 @@ func response(c *gin.Context, code int, msg string, data any) {
 		"data": data,
 	}
 
-	//// 小程序原版没有msg字段，出错的时候data就作为msg
-	//if data == nil {
-	//	resp["data"] = msg
-	//}
-
 	c.JSON(200, resp)
 }
 
 func toResponseCode(code ecode.Code) (respCode int, msg string) {
+	switch code {
+	case ecode.UndergradPasswordWrong:
+		return resp.UndergradLoginPasswordWrong, "password wrong"
+	case ecode.UndergradPasswordNeedUpdate:
+		return resp.UndergradLoginPasswordWrong, "password wrong"
+	case ecode.UndergradPasswordNeedModify:
+		return resp.UndergradLoginPasswordWrong, "password wrong"
+	case ecode.GraduatePasswordWrong:
+		return resp.GraduateLoginPasswordWrong, "password wrong"
+	case ecode.GraduatePasswordNeedUpdate:
+		return resp.GraduateLoginPasswordWrong, "password wrong"
+	case ecode.GraduatePasswordNeedModify:
+		return resp.GraduateLoginPasswordWrong, "password wrong"
+	case ecode.WusthelperTokenInvalid:
+		return resp.UndergradNeedRelogin, "token invalid"
+	}
+
 	return code.Code(), code.Message()
 }

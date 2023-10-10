@@ -7,7 +7,6 @@ import (
 	"wusthelper-mp-gateway/app/model"
 	rpc "wusthelper-mp-gateway/app/rpc/http/wusthelper/v2"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
-	"wusthelper-mp-gateway/library/ecode"
 	"wusthelper-mp-gateway/library/log"
 )
 
@@ -55,7 +54,7 @@ func (s *Service) GraduateLogin(ctx *context.Context, username, password string,
 func (s *Service) GraduateGetStudentInfo(ctx *context.Context, oid string, platform mp.Platform) (student *model.Student, err error) {
 	token, err := s.GetToken(ctx, oid, platform)
 	if err != nil {
-		return nil, ecode.DaoOperationErr
+		return nil, err
 	}
 
 	return s.tokenGetGraduateStudentInfo(token)
@@ -64,7 +63,7 @@ func (s *Service) GraduateGetStudentInfo(ctx *context.Context, oid string, platf
 func (s *Service) tokenGetGraduateStudentInfo(token string) (student *model.Student, err error) {
 	studentInfo, err := s.rpc.GraduateStudentInfo(token)
 	if err != nil {
-		return nil, ecode.DaoOperationErr
+		return nil, err
 	}
 
 	student = &model.Student{
@@ -76,7 +75,7 @@ func (s *Service) tokenGetGraduateStudentInfo(token string) (student *model.Stud
 	}
 	err = s.SaveStudent(student.Sid, student)
 	if err != nil {
-		return nil, ecode.DaoOperationErr
+		return nil, err
 	}
 
 	return
@@ -90,7 +89,7 @@ func (s *Service) GraduateGetCourseTable(ctx *context.Context, oid string, platf
 
 	courses, err = s.rpc.GraduateCourses(token)
 	if err != nil {
-		return nil, ecode.RpcRequestErr
+		return nil, err
 	}
 
 	return
@@ -104,7 +103,7 @@ func (s *Service) GraduateGetScore(ctx *context.Context, oid string, platform mp
 
 	scores, err = s.rpc.GraduateScores(token)
 	if err != nil {
-		return nil, ecode.RpcRequestErr
+		return nil, err
 	}
 
 	return
@@ -118,7 +117,7 @@ func (s *Service) GraduateGetTrainingPlan(ctx *context.Context, oid string, plat
 
 	html, err = s.rpc.GraduateTrainingPlan(token)
 	if err != nil {
-		return "", ecode.RpcRequestErr
+		return "", err
 	}
 
 	return

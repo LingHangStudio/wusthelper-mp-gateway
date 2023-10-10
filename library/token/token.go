@@ -1,9 +1,10 @@
 package token
 
 import (
-	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
 	"time"
+	"wusthelper-mp-gateway/library/log"
 )
 
 type Token struct {
@@ -46,8 +47,6 @@ func (t *Token) GetClaimVerify(token string) (*jwt.MapClaims, bool) {
 	})
 
 	if err != nil {
-		fmt.Println("GetClaimVerifyError")
-		fmt.Println(err.Error())
 		return nil, false
 	}
 
@@ -58,8 +57,7 @@ func (t *Token) GetClaimWithoutVerify(token string) *jwt.MapClaims {
 	claims := new(jwt.MapClaims)
 	_, _, err := jwt.NewParser().ParseUnverified(token, claims)
 	if err != nil {
-		fmt.Println("GetClaimWithoutVerifyError")
-		fmt.Println(err.Error())
+		log.Warn("token解析（不验证）错误", zap.String("err", err.Error()))
 		return nil
 	}
 

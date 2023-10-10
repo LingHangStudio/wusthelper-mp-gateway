@@ -83,8 +83,9 @@ func (l *Logger) Sync() error {
 
 var std = New(os.Stderr, InfoLevel)
 
-func Default() *Logger     { return std }
-func SetDefault(l *Logger) { std = l }
+func Default() *Logger           { return std }
+func DefaultWriter() *zap.Logger { return std.l }
+func SetDefault(l *Logger)       { std = l }
 
 func SetLevel(level Level) { std.SetLevel(level) }
 

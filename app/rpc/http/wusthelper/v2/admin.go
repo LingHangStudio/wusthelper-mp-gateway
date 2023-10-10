@@ -18,7 +18,7 @@ func (w *WusthelperHttpRpc) GetAdminConfigure() (config *model.AdminConfig, err 
 	}
 
 	if resp.Code != adminSuccess {
-		return nil, toEcode(resp.Code)
+		return nil, toEcode(resp.Code, "GetAdminConfigure")
 	}
 
 	return &resp.Data, nil

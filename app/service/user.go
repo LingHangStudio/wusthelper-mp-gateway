@@ -3,12 +3,9 @@ package service
 import (
 	"context"
 	"github.com/yitter/idgenerator-go/idgen"
-	"go.uber.org/zap"
 	"time"
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
-	"wusthelper-mp-gateway/library/ecode"
-	"wusthelper-mp-gateway/library/log"
 )
 
 // Code2Session 验证从小程序前端传来的code并换取用户session信息
@@ -24,7 +21,7 @@ func (s *Service) Code2Session(code string, platform mp.Platform) (session *mp.S
 func (s *Service) GetUserBasic(oid string) (user *model.UserBasic, err error) {
 	user, err = s.dao.GetUserBasic(oid)
 	if err != nil {
-		return nil, ecode.DaoOperationErr
+		return nil, err
 	}
 
 	return
@@ -69,7 +66,7 @@ func (s *Service) newBasicUser(platform mp.Platform, oid string) (user *model.Us
 func (s *Service) SaveUserBasic(oid string, userBasic *model.UserBasic, platform mp.Platform) (err error) {
 	has, err := s.dao.HasUser(oid)
 	if err != nil {
-		return ecode.DaoOperationErr
+		return err
 	}
 
 	if has {
@@ -82,7 +79,7 @@ func (s *Service) SaveUserBasic(oid string, userBasic *model.UserBasic, platform
 		_, err = s.dao.AddUserBasic(userBasic)
 	}
 	if err != nil {
-		return ecode.DaoOperationErr
+		return err
 	}
 
 	return nil
@@ -152,8 +149,7 @@ func (s *Service) CountTotalUser(ctx *context.Context) (count int64, err error) 
 
 	cacheTotal, err = s.dao.CountTotalUser()
 	if err != nil {
-		log.Error("获取用户总数发生错误", zap.String("err", err.Error()))
-		return 0, ecode.DaoOperationErr
+		return 0, err
 	}
 
 	_ = s.dao.StoreTotalUserCountCache(ctx, cacheTotal, time.Hour*1)

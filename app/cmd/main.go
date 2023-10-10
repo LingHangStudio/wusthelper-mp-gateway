@@ -9,6 +9,7 @@ import (
 	v1 "wusthelper-mp-gateway/app/api/http"
 	"wusthelper-mp-gateway/app/conf"
 	"wusthelper-mp-gateway/app/middleware/auth"
+	"wusthelper-mp-gateway/library/ecode"
 	"wusthelper-mp-gateway/library/log"
 )
 
@@ -18,6 +19,8 @@ func main() {
 
 	setupIdGenerator()
 	setupLogger()
+
+	ecode.InitEcodeText()
 
 	// server启动必须在最后
 	startServer()

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"time"
 	"wusthelper-mp-gateway/app/model"
+	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/log"
 )
 
 const (
@@ -24,7 +27,8 @@ func (d *Dao) StoreWusthelperTokenCache(c *context.Context, token, oid string, e
 	key := fmt.Sprintf(_tokenCacheKey, oid)
 	err := d.redis.Set(*c, key, token, ex).Err()
 	if err != nil {
-		return err
+		log.Error("缓存助手token出现错误", zap.String("err", err.Error()))
+		return ecode.DaoOperationErr
 	}
 
 	return nil
@@ -37,7 +41,8 @@ func (d *Dao) StoreOidSidCache(c *context.Context, oid, sid string, ex time.Dura
 	err := d.redis.Set(*c, oidSidCacheKey, sid, ex).Err()
 	err = d.redis.Set(*c, sidOidCacheKey, oid, ex).Err()
 	if err != nil {
-		return err
+		log.Error("缓存Oid-Sid出现错误", zap.String("err", err.Error()))
+		return ecode.DaoOperationErr
 	}
 
 	return nil
@@ -50,7 +55,8 @@ func (d *Dao) GetToken(c *context.Context, oid string) (token string, err error)
 		if err == redis.Nil {
 			return "", nil
 		}
-		return "", err
+		log.Error("获取tokenCache出现错误", zap.String("err", err.Error()))
+		return "", ecode.DaoOperationErr
 	}
 
 	return
@@ -63,7 +69,8 @@ func (d *Dao) GetSidForOid(c *context.Context, oid string) (sid string, err erro
 		if err == redis.Nil {
 			return "", nil
 		}
-		return "", err
+		log.Error("获取oid-sid出现错误", zap.String("err", err.Error()))
+		return "", ecode.DaoOperationErr
 	}
 
 	return sid, nil
@@ -75,29 +82,44 @@ func (d *Dao) GetTotalUserCountCache(ctx *context.Context) (total int64, err err
 		if err == redis.Nil {
 			return 0, nil
 		}
-		return 0, err
+		log.Error("获取用户总数缓存出现错误", zap.String("err", err.Error()))
+		return 0, ecode.DaoOperationErr
 	}
 
 	return total, nil
 }
 
 func (d *Dao) StoreTotalUserCountCache(ctx *context.Context, count int64, ex time.Duration) (err error) {
-	return d.redis.Set(*ctx, _totalUserCacheKey, count, ex).Err()
+	err = d.redis.Set(*ctx, _totalUserCacheKey, count, ex).Err()
+	if err != nil {
+		log.Error("存储用户总数出现错误", zap.String("err", err.Error()))
+		return ecode.DaoOperationErr
+	}
+
+	return nil
 }
 
 func (d *Dao) IncreaseTotalUserCount(ctx *context.Context) (err error) {
-	return d.redis.Incr(*ctx, _totalUserCacheKey).Err()
+	err = d.redis.Incr(*ctx, _totalUserCacheKey).Err()
+	if err != nil {
+		log.Error("用户总数+1出现错误", zap.String("err", err.Error()))
+		return ecode.DaoOperationErr
+	}
+
+	return nil
 }
 
 func (d *Dao) StoreAdminConfigCache(ctx *context.Context, config *model.AdminConfig, ex time.Duration) (err error) {
 	data, err := jsoniter.Marshal(config)
 	if err != nil {
-		return err
+		log.Error("序列化管理端配置出现错误", zap.String("err", err.Error()))
+		return ecode.DaoOperationErr
 	}
 
 	err = d.redis.Set(*ctx, _adminConfigCacheKey, string(data), ex).Err()
 	if err != nil {
-		return err
+		log.Error("缓存管理端配置出现错误", zap.String("err", err.Error()))
+		return ecode.DaoOperationErr
 	}
 
 	return
@@ -109,13 +131,15 @@ func (d *Dao) GetAdminConfigCache(ctx *context.Context) (config *model.AdminConf
 		if err == redis.Nil {
 			return nil, nil
 		}
-		return nil, err
+		log.Error("获取管理端配置出现错误", zap.String("err", err.Error()))
+		return nil, ecode.DaoOperationErr
 	}
 
 	config = new(model.AdminConfig)
 	err = jsoniter.Unmarshal([]byte(result), config)
 	if err != nil {
-		return nil, err
+		log.Error("反序列化管理端配置出现错误", zap.String("err", err.Error()))
+		return nil, ecode.DaoOperationErr
 	}
 
 	return config, nil

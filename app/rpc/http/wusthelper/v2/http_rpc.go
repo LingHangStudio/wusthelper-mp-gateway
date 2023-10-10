@@ -2,9 +2,11 @@ package v2
 
 import (
 	"github.com/go-resty/resty/v2"
+	"go.uber.org/zap"
 	"time"
 	"wusthelper-mp-gateway/app/conf"
 	"wusthelper-mp-gateway/library/ecode"
+	"wusthelper-mp-gateway/library/log"
 )
 
 type WusthelperHttpRpc struct {
@@ -40,66 +42,86 @@ func NewRpcClient(c *conf.WusthelperConf) (rpc *WusthelperHttpRpc) {
 }
 
 const (
-	adminSuccess           = 0
-	success                = 10000
-	localSuc               = 11000
-	limitRequest           = 99999
-	err                    = 11111
-	baseParamErr           = 10001
-	requestDenied          = 10002
-	requestCalledErr       = 10003
-	clientAbortErr         = 10004
-	authErr                = 20001
-	authErrTokenMiss       = 21001
-	authErrTokenInvalid    = 21002
-	authDecodeForStunumSuc = 10000
-	authDecodeForStunumErr = 21101
-	//身份验证状态码 end
-	//jwc模块状态码 start (3)
-	jwcPwdNedUpd                       = 30001
-	jwcLoginSuc                        = 10000
-	jwcLoginErrJwcErr                  = 30104
-	jwcLoginErrJwcFinInfoErr           = 30101
-	jwcLoginErrJwcModDefPwd            = 30102
-	jwcLoginErrJwcErrInfoErr           = 30103
-	jwcLoginErrJwcRetryTooManyTimesErr = 30101
-	jwcLoginErrJwcUserWasBannedErr     = 30101
-	jwcLoginSucJwcErrLocSuc            = 11000
-	jwcGetstuinfoSuc                   = 10000
-	jwcGetstuinfoSucJwcErrLocSuc       = 11000
-	jwcGetstuinfoErrNoSuchStu          = 30201
-	jwcGetcurriculumSuc                = 10000
-	jwcGetcurriculumSucJwcErrLocSuc    = 11000
-	jwcGetcurriculumErrJwcErr          = 30301
-	jwcGetjwcannlistSuc                = 10000
-	jwcGetjwcanncntSuc                 = 10000
-	jwcGetgradeSuc                     = 10000
-	jwcGetgradeErrNeedEvaluateTeaching = 30601
-	jwcGetgradeErrJwcErrLocSuc         = 11000
-	jwcGetcreditSuc                    = 10000
-	jwcGetcreditSucJwcErrLocSuc        = 11000
-	jwcTrainingSchemeSuc               = 10000
-	jwcTrainingSchemeErr               = 30701
-	//jwc模块验证码 end
-	//lib状态码 start (4)
-	libPwdNedUpd                     = 40001
-	libLoginExpire                   = 40002
-	libLoginSuc                      = 10000
-	libLoginErrLibFinInfoErr         = 40101
-	libLoginErrWrongAuthCode         = 40103
-	libLoginErrTooMuchTime           = 40104
-	libLoginErrLibErrInfoErr         = 40102
-	libLoginErrLibErrLocSuc          = 11000
-	libGetrenthistorySuc             = 10000
-	libGetrenthistorySucLibErrLocSuc = 11000
-	libGetcurrentrentSuc             = 10000
-	libGetcurrentrentSucLibErrLocSuc = 11000
-	libGetrentSucLibErrLocSuc        = 11000
-	libGetrentSuc                    = 10000
-	libGetlibannlistSuc              = 10000
-	libGetlibanncntSuc               = 10000
+	adminSuccess     = 0
+	success          = 10000 // 成功
+	localSuc         = 11000 // 本地成功
+	limitRequest     = 99999 // 操作频繁，请稍后再试
+	err              = 11111 // 失败
+	baseParamErr     = 10001 // 参数缺失或参数类型错误
+	requestDenied    = 10002 // 请求错误
+	requestCalledErr = 10003 // 接口调用错误:请求出错，data中为错误信息，请检查并详细参照api文档使用该接口
+	clientAbortErr   = 10004 // 连接中断
+
+	authErr                = 20001 // 用户身份验证模块异常
+	authErrTokenMiss       = 21001 // 用户身份校验失败:请求缺失令牌token
+	authErrTokenInvalid    = 21002 // 用户身份校验失败:token无效或过期
+	authDecodeForStuNumSuc = 10000 // token解密成功
+	authDecodeForStuNumErr = 21101 // token解密失败
+
+	// 本科生
+	jwcPwdNedUpd                       = 30001 // 教务处密码已修改,请重新登录
+	jwcLoginSuc                        = 10000 // 教务处登录成功
+	jwcLoginErrJwcErr                  = 30104 // 登录失败:教务系统异常，请重试
+	jwcLoginErrJwcFinInfoErr           = 30101 // 登陆失败:账号或密码错误
+	jwcLoginErrJwcModDefPwd            = 30102 // 登录失败:请前往教务官网修改默认密码
+	jwcLoginErrJwcErrInfoErr           = 30103 // 登录失败:账号或密码错误，或教务异常，请重试
+	jwcLoginErrJwcRetryTooManyTimesErr = 30101 // 登录失败:密码重试次数已达三次，继续重试可能会导致暂时封禁
+	jwcLoginErrJwcUserWasBannedErr     = 30101 // 登录失败:密码总重试次数已达五次，已被暂时封禁
+	jwcLoginSucJwcErrLocSuc            = 11000 // 教务异常:缓存登录成功
+	jwcGetStuInfoSuc                   = 10000 // 教务处获取用户信息成功
+	jwcGetStuInfoSucJwcErrLocSuc       = 11000 // 教务异常:缓存学生信息获取成功
+	jwcGetStuInfoErrNoSuchStu          = 30201 // 教务处获取用户信息失败:用户不存在
+	jwcGetCurrCourseSuc                = 10000 // 教务处获取课表信息成功
+	jwcGetCurrCourseSucJwcErrLocSuc    = 11000 // 教务异常:缓存课表信息获取成功
+	jwcGetCurrCourseErrJwcErr          = 30301 // 教务异常:获取课表失败
+	jwcGetGradeSuc                     = 10000 // 教务处成绩获取成功
+	jwcGetGradeErrNeedEvaluateTeaching = 30601 // 教务处成绩获取失败:请前往教务官网评教
+	jwcGetGradeErrJwcErrLocSuc         = 11000 // 教务异常:缓存成绩获取成功
+	jwcTrainingSchemeSuc               = 10000 // 教务处培养方案获取成功
+	jwcTrainingSchemeErr               = 30701 // 教务异常，培养方案获取失败
+
+	// 研究生
+	yjsLoginSuc              = 10000 // 研究生官网登录成功
+	yjsLoginErrYjsFinInfoErr = 80002 // 登录失败:账号或密码错误
+	yjsLoginError            = 11111 // 登录失败，研究生官网异常，请稍后再试
+	yjsGetStuInfoSuc         = 10000 // 研究生官网获取用户信息成功
+	yjsGetStuInfoErr         = 11111 // 研究生官网异常，获取用户信息失败，请稍后再试
+	yjsGetGradeSuc           = 10000 // 研究生官网成绩获取成功
+	yjsGetGradeErr           = 11111 // 研究生官网异常，获取成绩失败，请稍后再试
+	yjsGetCourseSuc          = 10000 // 研究生官网课表获取成功
+	yjsGetCourseErr          = 11111 // 研究生官网异常，刷新课表失败，请稍后再试
+	yjsGetTrainingPlanSuc    = 10000 // 研究生官网培养管理获取成功
+	yjsGetTrainingPlanErr    = 11111 // 研究生官网异常，获取培养管理失败，请稍后再试
+	yjsPwdNedUpd             = 80001 // 研究生官网密码已修改,请重新登录
 )
 
-func toEcode(code int) ecode.Code {
+func toEcode(code int, service string) ecode.Code {
+	switch code {
+	case jwcPwdNedUpd:
+		return ecode.UndergradPasswordNeedUpdate
+	case jwcLoginErrJwcModDefPwd:
+		return ecode.UndergradPasswordNeedModify
+	case jwcLoginErrJwcErr:
+		return ecode.UndergradRequestFail
+	case jwcLoginErrJwcFinInfoErr:
+		return ecode.UndergradPasswordWrong
+	case yjsLoginErrYjsFinInfoErr:
+		return ecode.GraduatePasswordWrong
+	case yjsPwdNedUpd:
+		return ecode.GraduatePasswordNeedUpdate
+	case authErr:
+		return ecode.WusthelperTokenInvalid
+	case authErrTokenMiss:
+		return ecode.WusthelperTokenInvalid
+	case authErrTokenInvalid:
+		return ecode.WusthelperTokenInvalid
+	case authDecodeForStuNumSuc:
+		return ecode.WusthelperTokenInvalid
+	case authDecodeForStuNumErr:
+		return ecode.WusthelperTokenInvalid
+	default:
+		log.Warn("未处理的助手上游响应码", zap.Int("code", code), zap.String("service", service))
+	}
+
 	return ecode.RpcRequestErr
 }

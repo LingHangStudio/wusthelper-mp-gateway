@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 	"wusthelper-mp-gateway/library/ecode"
+	respCode "wusthelper-mp-gateway/library/ecode/resp"
 )
 
 type undergradLoginReq struct {
@@ -31,6 +32,7 @@ func undergradLogin(c *gin.Context) {
 	ctx := c.Request.Context()
 	_, student, err := serv.UndergradLogin(&ctx, req.UserAccount, req.UserPassword, oid, true, platform)
 	if err != nil {
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -48,7 +50,7 @@ func undergradLogin(c *gin.Context) {
 		"info": resp,
 	}
 
-	response(c, ecode.UndergradLoginOk, "ok", respData)
+	response(c, respCode.UndergradLoginOk, "ok", respData)
 	c.Next()
 }
 
@@ -63,7 +65,7 @@ func undergradGetStudentInfo(c *gin.Context) {
 	ctx := c.Request.Context()
 	student, err := serv.UndergradGetStudentInfo(&ctx, oid, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -76,7 +78,7 @@ func undergradGetStudentInfo(c *gin.Context) {
 		Year:      student.Sid[:4],
 	}
 
-	response(c, ecode.UndergradGetStudentInfoOk, "ok", resp)
+	response(c, respCode.UndergradGetStudentInfoOk, "ok", resp)
 }
 
 func undergradGetCourseTable(c *gin.Context) {
@@ -95,7 +97,7 @@ func undergradGetCourseTable(c *gin.Context) {
 	ctx := c.Request.Context()
 	courses, err := serv.UndergradGetCourseTable(&ctx, oid, term, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -120,7 +122,7 @@ func undergradGetCourseTable(c *gin.Context) {
 		WeekLessonNumList: *_getWeekCourseCount(&courseList),
 	}
 
-	response(c, ecode.UndergradGetCoursesOk, "ok", resp)
+	response(c, respCode.UndergradGetCoursesOk, "ok", resp)
 }
 
 func _generateCurrentTermText() string {
@@ -163,7 +165,7 @@ func undergradGetScore(c *gin.Context) {
 	ctx := c.Request.Context()
 	scores, err := serv.UndergradGetScore(&ctx, oid, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -205,7 +207,7 @@ func undergradGetScore(c *gin.Context) {
 		},
 	}
 
-	response(c, ecode.UndergradGetScoreOk, "ok", resp)
+	response(c, respCode.UndergradGetScoreOk, "ok", resp)
 }
 
 func _getCurrentTimeInfo() *[]int {
@@ -234,9 +236,9 @@ func undergradGetTrainingPlan(c *gin.Context) {
 	ctx := c.Request.Context()
 	page, err := serv.UndergradGetTrainingPlan(&ctx, oid, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
-	response(c, ecode.UndergradGetTrainingPlanOk, "ok", page)
+	response(c, respCode.UndergradGetTrainingPlanOk, "ok", page)
 }

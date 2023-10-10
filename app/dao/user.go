@@ -24,6 +24,7 @@ func (d *Dao) GetUserBasic(oid string) (user *model.UserBasic, err error) {
 	user = new(model.UserBasic)
 	has, err := d.db.SQL(_GetUserBasicSql, oid).Get(user)
 	if err != nil {
+		log.Error("获取用户基本信息出现错误", zap.String("err", err.Error()))
 		return nil, err
 	} else if !has {
 		return nil, nil
@@ -35,7 +36,7 @@ func (d *Dao) GetUserBasic(oid string) (user *model.UserBasic, err error) {
 func (d *Dao) HasUser(oid string) (has bool, err error) {
 	has, err = d.db.SQL(_HasUserSql, oid).Exist()
 	if err != nil {
-		log.Error("查找用户存在时出现错误", zap.String("err", err.Error()))
+		log.Error("查找用户是否存在时出现错误", zap.String("err", err.Error()))
 		return false, ecode.DaoOperationErr
 	}
 
@@ -48,6 +49,10 @@ func (d *Dao) UpdateUser(oid string, user *model.UserBasic, forceUpdate ...strin
 		MustCols(forceUpdate...).
 		Where("oid = ?", oid).
 		Update(user)
+	if err != nil {
+		log.Error("更新用户基本信息时出现错误", zap.String("err", err.Error()))
+		return 0, ecode.DaoOperationErr
+	}
 
 	return
 }
@@ -56,6 +61,11 @@ func (d *Dao) AddUserBasic(user *model.UserBasic) (count int64, err error) {
 	user.CreateTime = time.Now()
 	user.UpdateTime = user.CreateTime
 	count, err = d.db.InsertOne(user)
+	if err != nil {
+		log.Error("插入用户基本信息时出现错误", zap.String("err", err.Error()))
+		return 0, ecode.DaoOperationErr
+	}
+
 	return
 }
 
@@ -63,7 +73,8 @@ func (d *Dao) GetWxUserProfile(oid string) (user *model.WxUserProfile, err error
 	user = new(model.WxUserProfile)
 	has, err := d.db.SQL(_WxUserProfileSql, oid).Get(user)
 	if err != nil {
-		return nil, err
+		log.Error("获取微信用户信息出现错误", zap.String("err", err.Error()))
+		return nil, ecode.DaoOperationErr
 	} else if !has {
 		return nil, nil
 	}
@@ -75,7 +86,8 @@ func (d *Dao) GetQQUserProfile(oid string) (user *model.QQUserProfile, err error
 	user = new(model.QQUserProfile)
 	has, err := d.db.SQL(_QQUserProfileSql, oid).Get(user)
 	if err != nil {
-		return nil, err
+		log.Error("获取QQ用户信息出现错误", zap.String("err", err.Error()))
+		return nil, ecode.DaoOperationErr
 	} else if !has {
 		return nil, nil
 	}
@@ -91,6 +103,11 @@ func (d *Dao) HasUserProfile(platform mp.Platform, oid string) (has bool, err er
 		has, err = d.db.SQL(_HasQQUserProfileSql, oid).Exist()
 	}
 
+	if err != nil {
+		log.Error("查找微信/QQ用户信息是否存在时出现错误", zap.String("err", err.Error()), zap.Int("platform", platform))
+		return false, ecode.DaoOperationErr
+	}
+
 	return
 }
 
@@ -98,6 +115,11 @@ func (d *Dao) AddWxUserProfile(user *model.WxUserProfile) (count int64, err erro
 	user.CreateTime = time.Now()
 	user.UpdateTime = user.CreateTime
 	count, err = d.db.InsertOne(user)
+	if err != nil {
+		log.Error("新增微信用户信息时出现错误", zap.String("err", err.Error()))
+		return count, ecode.DaoOperationErr
+	}
+
 	return
 }
 
@@ -105,6 +127,11 @@ func (d *Dao) AddQQUserProfile(user *model.QQUserProfile) (count int64, err erro
 	user.CreateTime = time.Now()
 	user.UpdateTime = user.CreateTime
 	count, err = d.db.InsertOne(user)
+	if err != nil {
+		log.Error("新增QQ用户信息时出现错误", zap.String("err", err.Error()))
+		return count, ecode.DaoOperationErr
+	}
+
 	return
 }
 
@@ -115,7 +142,10 @@ func (d *Dao) UpdateWxUserProfile(oid string, user *model.WxUserProfile, forceUp
 		Where("oid = ?", oid).
 		And("deleted = ?", 0).
 		Update(user)
-
+	if err != nil {
+		log.Error("更新微信用户信息时出现错误", zap.String("err", err.Error()))
+		return count, ecode.DaoOperationErr
+	}
 	return
 }
 
@@ -126,12 +156,20 @@ func (d *Dao) UpdateQQUserProfile(oid string, user *model.QQUserProfile, forceUp
 		Where("oid = ?", oid).
 		And("deleted = ?", 0).
 		Update(user)
+	if err != nil {
+		log.Error("更新QQ用户信息时出现错误", zap.String("err", err.Error()))
+		return count, ecode.DaoOperationErr
+	}
 
 	return
 }
 
 func (d *Dao) CountTotalUser() (total int64, err error) {
 	total, err = d.db.Table("user_basic").Count()
+	if err != nil {
+		log.Error("查询用户总数时出现错误", zap.String("err", err.Error()))
+		return total, ecode.DaoOperationErr
+	}
 
 	return
 }

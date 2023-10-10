@@ -14,7 +14,7 @@ var (
 )
 
 // Register register ecode message map.
-func Register(cm map[int]string) {
+func Register(cm map[Code]string) {
 	_messages.Store(cm)
 }
 

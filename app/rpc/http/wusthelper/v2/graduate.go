@@ -23,7 +23,7 @@ func (w *WusthelperHttpRpc) GraduateLogin(username, password string) (token stri
 	}
 
 	if resp.Code != success {
-		return "", toEcode(resp.Code)
+		return "", toEcode(resp.Code, "GraduateLogin")
 	}
 
 	return resp.Data, nil
@@ -41,7 +41,7 @@ func (w *WusthelperHttpRpc) GraduateStudentInfo(token string) (studentInfo *Grad
 	}
 
 	if resp.Code != success {
-		return nil, toEcode(resp.Code)
+		return nil, toEcode(resp.Code, "GraduateStudentInfo")
 	}
 
 	return &resp.Data, nil
@@ -59,7 +59,7 @@ func (w *WusthelperHttpRpc) GraduateCourses(token string) (courses *[]CourseResp
 	}
 
 	if resp.Code != success {
-		return nil, toEcode(resp.Code)
+		return nil, toEcode(resp.Code, "GraduateCourses")
 	}
 
 	return &resp.Data, err
@@ -77,7 +77,7 @@ func (w *WusthelperHttpRpc) GraduateScores(token string) (scores *[]GraduateScor
 	}
 
 	if resp.Code != success {
-		return nil, toEcode(resp.Code)
+		return nil, toEcode(resp.Code, "GraduateScores")
 	}
 
 	return &resp.Data, err
@@ -95,7 +95,7 @@ func (w *WusthelperHttpRpc) GraduateTrainingPlan(token string) (html string, err
 	}
 
 	if resp.Code != success {
-		return "", toEcode(resp.Code)
+		return "", toEcode(resp.Code, "GraduateTrainingPlan")
 	}
 
 	return resp.Data, err

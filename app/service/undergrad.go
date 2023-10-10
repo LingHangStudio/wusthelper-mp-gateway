@@ -7,7 +7,6 @@ import (
 	"wusthelper-mp-gateway/app/model"
 	rpc "wusthelper-mp-gateway/app/rpc/http/wusthelper/v2"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
-	"wusthelper-mp-gateway/library/ecode"
 	"wusthelper-mp-gateway/library/log"
 )
 
@@ -20,7 +19,7 @@ func (s *Service) UndergradLogin(ctx *context.Context, username, password string
 
 	err = s.dao.StoreWusthelperTokenCache(ctx, wusthelperToken, oid, wusthelperTokenExpiration)
 	if err != nil {
-		return "", nil, ecode.DaoOperationErr
+		return "", nil, err
 	}
 
 	if !updateStudentInfo {
@@ -55,7 +54,7 @@ func (s *Service) UndergradLogin(ctx *context.Context, username, password string
 func (s *Service) UndergradGetStudentInfo(ctx *context.Context, oid string, platform mp.Platform) (student *model.Student, err error) {
 	token, err := s.GetToken(ctx, oid, platform)
 	if err != nil {
-		return nil, ecode.DaoOperationErr
+		return nil, err
 	}
 
 	return s.tokenGetUndergradStudentInfo(token)
@@ -64,7 +63,7 @@ func (s *Service) UndergradGetStudentInfo(ctx *context.Context, oid string, plat
 func (s *Service) tokenGetUndergradStudentInfo(token string) (student *model.Student, err error) {
 	studentInfo, err := s.rpc.UndergradStudentInfo(token)
 	if err != nil {
-		return nil, ecode.DaoOperationErr
+		return nil, err
 	}
 
 	student = &model.Student{
@@ -76,7 +75,7 @@ func (s *Service) tokenGetUndergradStudentInfo(token string) (student *model.Stu
 	}
 	err = s.SaveStudent(student.Sid, student)
 	if err != nil {
-		return nil, ecode.DaoOperationErr
+		return nil, err
 	}
 
 	return
@@ -90,7 +89,7 @@ func (s *Service) UndergradGetCourseTable(ctx *context.Context, oid string, term
 
 	courses, err = s.rpc.UndergradCourses(term, token)
 	if err != nil {
-		return nil, ecode.RpcRequestErr
+		return nil, err
 	}
 
 	return
@@ -104,7 +103,7 @@ func (s *Service) UndergradGetScore(ctx *context.Context, oid string, platform m
 
 	scores, err = s.rpc.UndergradScores(token)
 	if err != nil {
-		return nil, ecode.RpcRequestErr
+		return nil, err
 	}
 
 	return
@@ -118,7 +117,7 @@ func (s *Service) UndergradGetTrainingPlan(ctx *context.Context, oid string, pla
 
 	html, err = s.rpc.UndergradTrainingPlan(token)
 	if err != nil {
-		return "", ecode.RpcRequestErr
+		return "", err
 	}
 
 	return

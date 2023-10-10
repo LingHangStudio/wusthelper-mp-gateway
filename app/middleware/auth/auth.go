@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"wusthelper-mp-gateway/app/conf"
-	api "wusthelper-mp-gateway/library/ecode"
+	api "wusthelper-mp-gateway/library/ecode/resp"
 	_token "wusthelper-mp-gateway/library/token"
 )
 

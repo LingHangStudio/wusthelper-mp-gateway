@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"wusthelper-mp-gateway/library/ecode"
+	respCode "wusthelper-mp-gateway/library/ecode/resp"
 	"wusthelper-mp-gateway/library/log"
 )
 
@@ -18,12 +19,14 @@ func graduateLogin(c *gin.Context) {
 	req := new(graduateLoginReq)
 	err := c.BindJSON(req)
 	if err != nil {
+		log.Error("研究生登录获取参数失败", zap.String("err", err.Error()))
 		responseEcode(c, ecode.ParamWrong, nil)
 		return
 	}
 
 	oid, err := getOid(c)
 	if err != nil {
+		log.Error("研究生登录获取oid失败", zap.String("err", err.Error()))
 		responseEcode(c, ecode.ParamWrong, nil)
 		return
 	}
@@ -31,6 +34,7 @@ func graduateLogin(c *gin.Context) {
 	ctx := c.Request.Context()
 	_, student, err := serv.GraduateLogin(&ctx, req.UserAccount, req.UserPassword, oid, true, platform)
 	if err != nil {
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -48,7 +52,7 @@ func graduateLogin(c *gin.Context) {
 		"info": resp,
 	}
 
-	response(c, ecode.GraduateLoginOk, "ok", respData)
+	response(c, respCode.GraduateLoginOk, "ok", respData)
 	c.Next()
 }
 
@@ -62,7 +66,7 @@ func graduateGetStudentInfo(c *gin.Context) {
 	ctx := c.Request.Context()
 	student, err := serv.GraduateGetStudentInfo(&ctx, oid, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -75,7 +79,7 @@ func graduateGetStudentInfo(c *gin.Context) {
 		Year:      student.Sid[:4],
 	}
 
-	response(c, ecode.GraduateRequestOk, "ok", resp)
+	response(c, respCode.GraduateRequestOk, "ok", resp)
 }
 
 func graduateGetCourseTable(c *gin.Context) {
@@ -89,7 +93,7 @@ func graduateGetCourseTable(c *gin.Context) {
 	ctx := c.Request.Context()
 	courses, err := serv.GraduateGetCourseTable(&ctx, oid, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -114,7 +118,7 @@ func graduateGetCourseTable(c *gin.Context) {
 		WeekLessonNumList: *_getWeekCourseCount(&courseList),
 	}
 
-	response(c, ecode.GraduateRequestOk, "ok", resp)
+	response(c, respCode.GraduateRequestOk, "ok", resp)
 }
 
 func graduateGetScore(c *gin.Context) {
@@ -128,7 +132,7 @@ func graduateGetScore(c *gin.Context) {
 	ctx := c.Request.Context()
 	scores, err := serv.GraduateGetScore(&ctx, oid, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -151,5 +155,5 @@ func graduateGetScore(c *gin.Context) {
 		}
 	}
 
-	response(c, ecode.GraduateRequestOk, "ok", scoreList)
+	response(c, respCode.GraduateRequestOk, "ok", scoreList)
 }

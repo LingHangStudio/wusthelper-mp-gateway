@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
@@ -10,6 +9,7 @@ import (
 	"wusthelper-mp-gateway/app/model"
 	"wusthelper-mp-gateway/app/thirdparty/tencent/mp"
 	"wusthelper-mp-gateway/library/ecode"
+	respCode "wusthelper-mp-gateway/library/ecode/resp"
 	"wusthelper-mp-gateway/library/log"
 )
 
@@ -31,7 +31,7 @@ func mpLogin(c *gin.Context) {
 
 	session, err := serv.Code2Session(code, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
@@ -44,40 +44,34 @@ func mpLogin(c *gin.Context) {
 	}
 	err = serv.SaveUserBasic(oid, user, platform)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
 	token := jwt.Sign(oid, unionid)
-	fmt.Printf("token: %s\n", token)
 
-	response(c, ecode.MpLoginOK, "ok", token)
+	response(c, respCode.MpLoginOK, "ok", token)
 	c.Next()
 	return
 }
 
 func mpTotalUser(c *gin.Context) {
-	fmt.Println("mpTotalUser")
-
 	ctx := c.Request.Context()
 	count, err := serv.CountTotalUser(&ctx)
 	if err != nil {
 		log.Error("获取用户总数发生错误", zap.String("err", err.Error()))
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
-	fmt.Println(count)
 
 	data := map[string]any{
 		"date":   time.Now().Format(time.RFC3339),
 		"jwcnum": count,
 	}
-	fmt.Println(data)
-	response(c, ecode.MpCountUserOk, "ok", data)
+	response(c, respCode.MpCountUserOk, "ok", data)
 }
 
 func mpDecodeToken(c *gin.Context) {
-	log.Warn("asdfasdfasdjfhasdkjfhagsdkjfhgaskjdhfgaskjdhfgajkshdf")
 	oid, err := getOid(c)
 	if err != nil {
 		responseEcode(c, ecode.ParamWrong, nil)
@@ -91,14 +85,15 @@ func mpDecodeToken(c *gin.Context) {
 
 	sid, err := serv.GetSid(oid)
 	if err != nil {
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
 	if sid == "" {
-		response(c, ecode.MpDecodeTokenNoStudent, "sid of this oid doesn't exists", data)
+		response(c, respCode.MpDecodeTokenNoStudent, "sid of this oid doesn't exists", data)
 	} else {
 		data["stu_num"] = sid
-		response(c, ecode.MpDecodeTokenOk, "ok", data)
+		response(c, respCode.MpDecodeTokenOk, "ok", data)
 	}
 }
 
@@ -139,11 +134,11 @@ func wxUserProfileUpload(c *gin.Context) {
 
 	err = serv.SaveWxUserProfile(oid, profile)
 	if err != nil {
-		responseEcode(c, ecode.DaoOperationErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
-	response(c, ecode.MpUserProfileUploadOk, "ok", nil)
+	response(c, respCode.MpUserProfileUploadOk, "ok", nil)
 	return
 }
 
@@ -168,11 +163,11 @@ func qqUserProfileUpload(c *gin.Context) {
 
 	err = serv.SaveQQUserProfile(oid, profile)
 	if err != nil {
-		responseEcode(c, ecode.DaoOperationErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
-	response(c, ecode.MpUserProfileUploadOk, "ok", nil)
+	response(c, respCode.MpUserProfileUploadOk, "ok", nil)
 	return
 }
 
@@ -180,12 +175,12 @@ func mpGetAdminConfigure(c *gin.Context) {
 	ctx := c.Request.Context()
 	config, err := serv.GetWusthelperAdminConfigure(&ctx)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 
 	resp := AdminConfigResp{
-		Code:        ecode.MpGetAdminConfigureOk,
+		Code:        respCode.MpGetAdminConfigureOk,
 		TermList:    config.TermList,
 		Openadvance: config.Openadvance,
 		Schedule:    config.Schedule,
@@ -206,7 +201,7 @@ func mpVersionLog(c *gin.Context) {
 		log.Warn("读取版本日志时出现错误", zap.String("err", err.Error()))
 	}
 
-	response(c, ecode.MpGetVersionLogOk, "ok", versionLog)
+	response(c, respCode.MpGetVersionLogOk, "ok", versionLog)
 }
 
 func mpGetUserInfo(c *gin.Context) {
@@ -223,21 +218,21 @@ func mpGetUserInfo(c *gin.Context) {
 
 	match, err := serv.CheckOidMatchSid(oid, sid)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 	if !match {
-		response(c, ecode.MpGetUserInfoOk, "ok", nil)
+		response(c, respCode.MpGetUserInfoOk, "ok", nil)
 		return
 	}
 
 	student, err := serv.GetStudent(sid)
 	if err != nil {
-		responseEcode(c, ecode.ServerErr, nil)
+		responseEcode(c, err.(ecode.Code), nil)
 		return
 	}
 	if student == nil {
-		response(c, ecode.MpGetUserInfoOk, "ok", nil)
+		response(c, respCode.MpGetUserInfoOk, "ok", nil)
 		return
 	}
 
@@ -258,10 +253,10 @@ func mpGetUserInfo(c *gin.Context) {
 		//Wechat:      "",
 	}
 
-	response(c, ecode.MpGetUserInfoOk, "ok", resp)
+	response(c, respCode.MpGetUserInfoOk, "ok", resp)
 	return
 }
 
 func mpGetUnionStatus(c *gin.Context) {
-	response(c, ecode.MpGetUnionStatusOk, "ok", 1)
+	response(c, respCode.MpGetUnionStatusOk, "ok", 1)
 }

@@ -12,7 +12,7 @@ func (w *WusthelperHttpRpc) LibraryLogin(token, password string) (err error) {
 	}
 
 	if resp.Code != success {
-		return toEcode(resp.Code)
+		return toEcode(resp.Code, "LibraryLogin")
 	}
 
 	return nil
